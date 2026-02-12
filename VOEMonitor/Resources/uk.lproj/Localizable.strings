@@ -1,0 +1,41 @@
+/* Status */
+"status.on" = "Світло є";
+"status.off" = "Світла немає";
+"status.partial" = "Часткове відключення";
+"status.unknown" = "Невідомо";
+
+/* Next event */
+"next.power_at %@" = "Світло о %@";
+"next.power_tomorrow_at %@" = "Світло завтра о %@";
+"next.outage_at %@" = "Відключення о %@";
+"next.outage_tomorrow_at %@" = "Відключення завтра о %@";
+"next.no_outages" = "Відключень не заплановано";
+
+/* Schedule */
+"schedule.today" = "Сьогодні";
+"schedule.tomorrow" = "Завтра";
+"schedule.loading" = "Завантаження...";
+"schedule.error %@" = "Помилка: %@";
+"schedule.no_data" = "Даних немає";
+
+/* Footer */
+"footer.updated %@" = "Оновлено: %@";
+"footer.refresh" = "Оновити";
+"footer.settings" = "Налаштування";
+
+/* Settings */
+"settings.queue" = "Черга";
+"settings.refresh_now" = "Оновити зараз";
+"settings.select_queue" = "Оберіть чергу...";
+"settings.back" = "Назад";
+
+/* General */
+"about.general" = "Загальне";
+"about.launch_at_login" = "Запускати при вході";
+"about.quit" = "Вийти";
+
+/* Update */
+"update.available %@" = "Доступне оновлення: v%@";
+
+/* Errors */
+"error.no_queue" = "Чергу не обрано. Оберіть чергу в Налаштуваннях.";

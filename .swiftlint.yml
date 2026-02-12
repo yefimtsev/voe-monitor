@@ -1,0 +1,141 @@
+# SwiftLint configuration for VOEMonitor
+# Focuses on semantic rules — SwiftFormat handles formatting.
+# Reference: https://realm.github.io/SwiftLint/rule-directory.html
+
+# ─── Paths ───────────────────────────────────────────────────────────
+
+included:
+  - VOEMonitor
+
+excluded:
+  - DerivedData
+  - VOEMonitor.xcodeproj
+
+# ─── Disabled Default Rules ──────────────────────────────────────────
+# Rules handled by SwiftFormat or inappropriate for this project
+
+disabled_rules:
+  # SwiftFormat handles these
+  - trailing_whitespace
+  - opening_brace
+  - closing_brace
+  - comma
+  - colon
+  - leading_whitespace
+  - statement_position
+  - return_arrow_whitespace
+  - function_name_whitespace
+  - vertical_whitespace
+
+  # Not applicable to small SwiftUI menubar app
+  - type_body_length           # SwiftUI views can be large by design
+  - function_body_length       # View body functions are naturally long
+  - file_length                # Single-file views are fine
+
+  # Conflicts with project patterns
+  - no_grouping_extension      # We use extensions for MARK section grouping
+  - identifier_name            # Short names like `id`, `to` are fine
+  - todo                       # We use TODO markers intentionally
+
+# ─── Opt-in Rules ────────────────────────────────────────────────────
+
+opt_in_rules:
+  # Safety
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  - discouraged_optional_boolean
+  - fatal_error_message
+  - unowned_variable_capture
+
+  # Unused code (via swiftlint analyze)
+  # - unused_import
+  # - unused_declaration
+
+  # Swift modernization
+  - prefer_self_in_static_references
+  - toggle_bool
+  - joined_default_parameter
+  - redundant_nil_coalescing
+  - last_where
+  - first_where
+  - contains_over_first_not_nil
+  - flatmap_over_map_reduce
+  - sorted_first_last
+
+  # Concurrency
+  - unhandled_throwing_task
+
+  # Readability
+  - modifier_order
+  - attributes
+  - number_separator
+  - file_name_no_space
+
+# ─── Rule Configuration ─────────────────────────────────────────────
+
+force_cast:
+  severity: error
+
+force_try:
+  severity: warning
+
+force_unwrapping:
+  severity: warning
+
+line_length:
+  warning: 140
+  error: 200
+  ignores_comments: true
+  ignores_urls: true
+
+modifier_order:
+  preferred_modifier_order:
+    - acl
+    - setterACL
+    - override
+    - dynamic
+    - mutating
+    - lazy
+    - final
+    - required
+    - convenience
+    - typeMethods
+    - owned
+
+analyzer_rules:
+  - unused_import
+  - unused_declaration
+
+number_separator:
+  minimum_length: 5
+
+attributes:
+  always_on_same_line:
+    - "@objc"
+    - "@Sendable"
+    - "@Bindable"
+    - "@Environment"
+    - "@AppStorage"
+    - "@State"
+    - "@Binding"
+  always_on_line_above:
+    - "@Observable"
+    - "@MainActor"
+    - "@discardableResult"
+
+# ─── Custom Rules ────────────────────────────────────────────────────
+
+custom_rules:
+  # NEVER use NSLock — use Mutex<T> from Synchronization
+  no_nslock:
+    name: "No NSLock"
+    regex: "NSLock"
+    message: "Use Mutex<T> from Synchronization instead of NSLock."
+    severity: error
+
+  # NEVER use @unchecked Sendable
+  no_unchecked_sendable:
+    name: "No @unchecked Sendable"
+    regex: "@unchecked Sendable"
+    message: "Do not use @unchecked Sendable — use Mutex<T> or proper Sendable conformance."
+    severity: error

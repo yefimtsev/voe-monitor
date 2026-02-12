@@ -1,0 +1,35 @@
+# Xcode
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcshareddata/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata/
+DerivedData/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+build/
+
+# Generated Xcode project (regenerated via xcodegen)
+VOEMonitor.xcodeproj/
+
+# Swift Package Manager
+.build/
+Packages/
+Package.pins
+Package.resolved
+
+# Claude Code
+.claude/
+CC-Session-Logs/
+CLAUDE.md
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride

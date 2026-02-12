@@ -1,0 +1,41 @@
+/* Status */
+"status.on" = "Power On";
+"status.off" = "Power Off";
+"status.partial" = "Partial Outage";
+"status.unknown" = "Unknown";
+
+/* Next event */
+"next.power_at %@" = "Power at %@";
+"next.power_tomorrow_at %@" = "Power tomorrow at %@";
+"next.outage_at %@" = "Outage at %@";
+"next.outage_tomorrow_at %@" = "Outage tomorrow at %@";
+"next.no_outages" = "No outages planned";
+
+/* Schedule */
+"schedule.today" = "Today";
+"schedule.tomorrow" = "Tomorrow";
+"schedule.loading" = "Loading...";
+"schedule.error %@" = "Error: %@";
+"schedule.no_data" = "No data";
+
+/* Footer */
+"footer.updated %@" = "Updated: %@";
+"footer.refresh" = "Refresh";
+"footer.settings" = "Settings";
+
+/* Settings */
+"settings.queue" = "Queue";
+"settings.refresh_now" = "Refresh now";
+"settings.select_queue" = "Select queue...";
+"settings.back" = "Back";
+
+/* General */
+"about.general" = "General";
+"about.launch_at_login" = "Launch at Login";
+"about.quit" = "Quit";
+
+/* Update */
+"update.available %@" = "Update available: v%@";
+
+/* Errors */
+"error.no_queue" = "Queue not selected. Choose a queue in Settings.";

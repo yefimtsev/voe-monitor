@@ -1,0 +1,12 @@
+// Base configuration shared between Debug and Release
+
+SWIFT_VERSION = 6.0
+MACOSX_DEPLOYMENT_TARGET = 26.0
+PRODUCT_BUNDLE_IDENTIFIER = com.github.yefimtsev.voe-monitor
+PRODUCT_NAME = VOE Monitor
+INFOPLIST_FILE = VOEMonitor/Info.plist
+CODE_SIGN_ENTITLEMENTS = VOEMonitor/VOEMonitor.entitlements
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
+COMBINE_HIDPI_IMAGES = YES
+SWIFT_STRICT_CONCURRENCY = complete
+LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/../Frameworks

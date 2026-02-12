@@ -1,0 +1,21 @@
+# SwiftFormat configuration for VOEMonitor
+# Reference: https://github.com/nicklockwood/SwiftFormat/blob/master/Rules.md
+
+# Disabled Rules
+--disable wrapMultilineStatementBraces
+
+# Customized Rules
+--indent 4                   # 4 spaces indentation
+--allman false               # K&R style braces
+--commas inline              # Trailing commas
+--elseposition same-line     # Else on the same line
+--redundanttype inferred     # Redundant type inference
+--wraparguments before-first
+--wrapcollections before-first
+
+# Enabled Opt-in Rules
+--enable isEmpty
+
+# Project-specific settings
+--swiftversion 6.2
+--exclude VOEMonitor.xcodeproj,DerivedData,.build

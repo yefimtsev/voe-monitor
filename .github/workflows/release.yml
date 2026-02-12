@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+# Prevent this workflow from running on pull_request or other events
+# even if the workflow file is modified in a PR.
+
+jobs:
+  build:
+    runs-on: macos-26
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: Build release archive
+        run: |
+          xcodebuild -project VOEMonitor.xcodeproj -scheme VOEMonitor \
+            -configuration Release -archivePath build/VOEMonitor.xcarchive \
+            archive CODE_SIGN_IDENTITY="-" CODE_SIGNING_ALLOWED=YES
+
+      - name: Package app
+        run: |
+          cp -R "build/VOEMonitor.xcarchive/Products/Applications/VOE Monitor.app" build/
+          cd build && zip -r VOEMonitor.zip "VOE Monitor.app"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=${GITHUB_REF_NAME}
+          gh release create "$VERSION" build/VOEMonitor.zip \
+            --title "VOE Monitor ${VERSION#v}" \
+            --generate-notes
+
+      - name: Update Homebrew tap
+        if: vars.HOMEBREW_TAP_REPO != ''
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          SHA=$(shasum -a 256 build/VOEMonitor.zip | awk '{print $1}')
+
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${{ vars.HOMEBREW_TAP_REPO }}.git" tap
+          cd tap
+
+          cat > Casks/voe-monitor.rb << CASK
+          cask "voe-monitor" do
+            version "${VERSION}"
+            sha256 "${SHA}"
+
+            url "https://github.com/yefimtsev/voe-monitor/releases/download/v#{version}/VOEMonitor.zip"
+            name "VOE Monitor"
+            desc "Power outage schedule for Vinnytsia region in your menubar"
+            homepage "https://github.com/yefimtsev/voe-monitor"
+
+            depends_on macos: ">= :tahoe"
+
+            app "VOE Monitor.app"
+
+            zap trash: [
+              "~/Library/Application Support/VOEMonitor",
+              "~/Library/Preferences/com.github.yefimtsev.VOEMonitor.plist",
+            ]
+          end
+          CASK
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/voe-monitor.rb
+          git commit -m "Update voe-monitor to ${VERSION}"
+          git push

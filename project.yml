@@ -1,0 +1,20 @@
+name: VOEMonitor
+options:
+  bundleIdPrefix: com.github.yefimtsev
+  deploymentTarget:
+    macOS: "26.0"
+  xcodeVersion: "26.2"
+  generateEmptyDirectories: true
+  developmentLanguage: uk
+configs:
+  Debug: debug
+  Release: release
+targets:
+  VOEMonitor:
+    type: application
+    platform: macOS
+    sources:
+      - VOEMonitor
+    configFiles:
+      Debug: Config/Debug.xcconfig
+      Release: Config/Release.xcconfig
