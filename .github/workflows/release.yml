@@ -60,7 +60,15 @@ jobs:
       - name: Package app
         run: |
           cp -R "build/VOEMonitor.xcarchive/Products/Applications/VOE Monitor.app" build/
-          cd build && zip -r VOEMonitor.zip "VOE Monitor.app"
+
+          # Create DMG with drag-to-install layout
+          mkdir -p build/dmg-staging
+          cp -R "build/VOE Monitor.app" build/dmg-staging/
+          ln -s /Applications build/dmg-staging/Applications
+          hdiutil create -volname "VOE Monitor" \
+            -srcfolder build/dmg-staging \
+            -ov -format UDZO \
+            build/VOEMonitor.dmg
 
       - name: Notarize app
         env:
@@ -68,7 +76,7 @@ jobs:
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          RESULT=$(xcrun notarytool submit build/VOEMonitor.zip \
+          RESULT=$(xcrun notarytool submit build/VOEMonitor.dmg \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
@@ -88,16 +96,15 @@ jobs:
             exit 1
           fi
 
-          # Staple the ticket to the app, then re-zip
-          xcrun stapler staple "build/VOE Monitor.app"
-          cd build && rm VOEMonitor.zip && zip -r VOEMonitor.zip "VOE Monitor.app"
+          # Staple the notarization ticket to the DMG
+          xcrun stapler staple build/VOEMonitor.dmg
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION=${GITHUB_REF_NAME}
-          gh release create "$VERSION" build/VOEMonitor.zip \
+          gh release create "$VERSION" build/VOEMonitor.dmg \
             --title "VOE Monitor ${VERSION#v}" \
             --generate-notes
 
@@ -107,7 +114,7 @@ jobs:
           GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
           VERSION=${GITHUB_REF_NAME#v}
-          SHA=$(shasum -a 256 build/VOEMonitor.zip | awk '{print $1}')
+          SHA=$(shasum -a 256 build/VOEMonitor.dmg | awk '{print $1}')
 
           git clone "https://x-access-token:${GH_TOKEN}@github.com/${{ vars.HOMEBREW_TAP_REPO }}.git" tap
           cd tap
@@ -117,7 +124,7 @@ jobs:
             version "${VERSION}"
             sha256 "${SHA}"
 
-            url "https://github.com/yefimtsev/voe-monitor/releases/download/v#{version}/VOEMonitor.zip"
+            url "https://github.com/yefimtsev/voe-monitor/releases/download/v#{version}/VOEMonitor.dmg"
             name "VOE Monitor"
             desc "Power outage schedule for Vinnytsia region in your menubar"
             homepage "https://github.com/yefimtsev/voe-monitor"
