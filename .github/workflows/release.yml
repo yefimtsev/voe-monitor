@@ -50,7 +50,8 @@ jobs:
         run: |
           xcodebuild -project VOEMonitor.xcodeproj -scheme VOEMonitor \
             -configuration Release -archivePath build/VOEMonitor.xcarchive \
-            archive CODE_SIGN_IDENTITY="Developer ID Application"
+            archive CODE_SIGN_IDENTITY="Developer ID Application" \
+            DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}"
 
       - name: Package app
         run: |
