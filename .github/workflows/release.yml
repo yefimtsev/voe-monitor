@@ -24,16 +24,54 @@ jobs:
       - name: Generate project
         run: xcodegen generate
 
+      - name: Import signing certificate
+        env:
+          CERTIFICATE_P12: ${{ secrets.CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+
+          # Decode certificate
+          echo "$CERTIFICATE_P12" | base64 --decode > $RUNNER_TEMP/certificate.p12
+
+          # Create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Import certificate
+          security import $RUNNER_TEMP/certificate.p12 -P "$CERTIFICATE_PASSWORD" \
+            -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
       - name: Build release archive
         run: |
           xcodebuild -project VOEMonitor.xcodeproj -scheme VOEMonitor \
             -configuration Release -archivePath build/VOEMonitor.xcarchive \
-            archive CODE_SIGN_IDENTITY="-" CODE_SIGNING_ALLOWED=YES
+            archive CODE_SIGN_IDENTITY="Developer ID Application"
 
       - name: Package app
         run: |
           cp -R "build/VOEMonitor.xcarchive/Products/Applications/VOE Monitor.app" build/
           cd build && zip -r VOEMonitor.zip "VOE Monitor.app"
+
+      - name: Notarize app
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          xcrun notarytool submit build/VOEMonitor.zip \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+
+          # Staple the ticket to the app, then re-zip
+          xcrun stapler staple "build/VOE Monitor.app"
+          cd build && rm VOEMonitor.zip && zip -r VOEMonitor.zip "VOE Monitor.app"
 
       - name: Create GitHub Release
         env:
@@ -81,3 +119,7 @@ jobs:
           git add Casks/voe-monitor.rb
           git commit -m "Update voe-monitor to ${VERSION}"
           git push
+
+      - name: Clean up keychain
+        if: always()
+        run: security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
