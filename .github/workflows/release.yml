@@ -51,7 +51,9 @@ jobs:
           xcodebuild -project VOEMonitor.xcodeproj -scheme VOEMonitor \
             -configuration Release -archivePath build/VOEMonitor.xcarchive \
             archive CODE_SIGN_IDENTITY="Developer ID Application" \
-            DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}"
+            DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
+            ENABLE_HARDENED_RUNTIME=YES \
+            OTHER_CODE_SIGN_FLAGS="--timestamp"
 
       - name: Package app
         run: |
@@ -64,11 +66,25 @@ jobs:
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          xcrun notarytool submit build/VOEMonitor.zip \
+          RESULT=$(xcrun notarytool submit build/VOEMonitor.zip \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
-            --wait
+            --wait 2>&1) || true
+          echo "$RESULT"
+
+          # Extract submission ID and fetch log on failure
+          SUB_ID=$(echo "$RESULT" | grep "id:" | head -1 | awk '{print $2}')
+          STATUS=$(echo "$RESULT" | grep "status:" | tail -1 | awk '{print $2}')
+
+          if [ "$STATUS" != "Accepted" ]; then
+            echo "::error::Notarization failed with status: $STATUS"
+            xcrun notarytool log "$SUB_ID" \
+              --apple-id "$APPLE_ID" \
+              --password "$APPLE_PASSWORD" \
+              --team-id "$APPLE_TEAM_ID" 2>&1 || true
+            exit 1
+          fi
 
           # Staple the ticket to the app, then re-zip
           xcrun stapler staple "build/VOE Monitor.app"
