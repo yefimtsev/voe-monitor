@@ -48,12 +48,14 @@ jobs:
 
       - name: Build release archive
         run: |
+          VERSION=${GITHUB_REF_NAME#v}
           xcodebuild -project VOEMonitor.xcodeproj -scheme VOEMonitor \
             -configuration Release -archivePath build/VOEMonitor.xcarchive \
             archive CODE_SIGN_IDENTITY="Developer ID Application" \
             DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
             ENABLE_HARDENED_RUNTIME=YES \
-            OTHER_CODE_SIGN_FLAGS="--timestamp"
+            OTHER_CODE_SIGN_FLAGS="--timestamp" \
+            MARKETING_VERSION="$VERSION"
 
       - name: Package app
         run: |
