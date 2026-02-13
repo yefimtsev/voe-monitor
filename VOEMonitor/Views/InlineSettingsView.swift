@@ -75,6 +75,7 @@ struct InlineSettingsView: View {
     private var notificationsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             sectionHeader("settings.notifications")
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             Toggle("settings.notifications_enabled", isOn: Binding(
                 get: { service.config.notificationsEnabled },
