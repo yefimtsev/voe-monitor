@@ -18,8 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install xcodegen
-        run: brew install xcodegen
+      - name: Install tools
+        run: brew install xcodegen create-dmg
 
       - name: Generate project
         run: xcodegen generate
@@ -57,18 +57,26 @@ jobs:
             OTHER_CODE_SIGN_FLAGS="--timestamp" \
             MARKETING_VERSION="$VERSION"
 
-      - name: Package app
+      - name: Package DMG
         run: |
           cp -R "build/VOEMonitor.xcarchive/Products/Applications/VOE Monitor.app" build/
 
-          # Create DMG with drag-to-install layout
+          # Create styled DMG with icon positioning and drag-to-Applications
           mkdir -p build/dmg-staging
           cp -R "build/VOE Monitor.app" build/dmg-staging/
-          ln -s /Applications build/dmg-staging/Applications
-          hdiutil create -volname "VOE Monitor" \
-            -srcfolder build/dmg-staging \
-            -ov -format UDZO \
-            build/VOEMonitor.dmg
+          create-dmg \
+            --volname "VOE Monitor" \
+            --window-pos 200 120 \
+            --window-size 540 380 \
+            --icon-size 128 \
+            --icon "VOE Monitor.app" 140 200 \
+            --hide-extension "VOE Monitor.app" \
+            --app-drop-link 400 200 \
+            --no-internet-enable \
+            "build/VOEMonitor.dmg" \
+            "build/dmg-staging/" || true
+          # create-dmg exits 2 when it can't set a custom icon (CI limitation)
+          test -f build/VOEMonitor.dmg
 
       - name: Notarize app
         env:
