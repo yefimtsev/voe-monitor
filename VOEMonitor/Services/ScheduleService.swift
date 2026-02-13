@@ -29,10 +29,15 @@ final class ScheduleService {
         didSet {
             ConfigManager.shared.save(config)
             if oldValue.selectedQueue != config.selectedQueue {
+                previousStatus = nil
+                lastWarnedSlot = nil
                 Task { await fetch() }
             }
             if oldValue.use24HourTime != config.use24HourTime {
                 updateNextOutageText()
+            }
+            if config.notificationsEnabled, !oldValue.notificationsEnabled {
+                Task { await NotificationManager.shared.requestPermission() }
             }
         }
     }
@@ -48,10 +53,15 @@ final class ScheduleService {
 
     private var refreshTimer: Timer?
     private var retryCountdownTimer: Timer?
+    private var statusTimer: Timer?
     private var lastFetchedAt: Date?
     private var retryCount = 0
     private let networkMonitor = NWPathMonitor()
     private var hasNetwork = true
+    /// Previous power status for transition detection. `nil` on first load or after queue change.
+    private var previousStatus: PowerStatus?
+    /// Tracks the last slot we sent an upcoming outage warning for, to avoid duplicates.
+    private var lastWarnedSlot: Int?
 
     // swiftlint:disable force_unwrapping
     private static let githubURL = URL(string: "https://raw.githubusercontent.com/vn-progr/gpv-voe-vinnytsia/main/data/Vinnytsiaoblenerho.json")!
@@ -69,6 +79,7 @@ final class ScheduleService {
     init() {
         config = ConfigManager.shared.load()
         startNetworkMonitor()
+        startStatusTimer()
         Task {
             await fetch()
             await checkForUpdate()
@@ -241,10 +252,85 @@ final class ScheduleService {
         let hour = calendar.component(.hour, from: Date())
         let slotIndex = hour + 1
 
+        let newStatus: PowerStatus
         if let slot = schedule.slots.first(where: { $0.id == slotIndex }) {
-            currentStatus = slot.status
+            newStatus = slot.status
         } else {
-            currentStatus = .unknown
+            newStatus = .unknown
+        }
+
+        // Detect meaningful transitions and fire notifications
+        if config.notificationsEnabled,
+           let previous = previousStatus,
+           previous != newStatus,
+           previous != .unknown,
+           newStatus != .unknown {
+            let nextTime = nextEventTimeString(for: newStatus, after: slotIndex, use24h: config.use24HourTime)
+            NotificationManager.shared.sendStatusChange(from: previous, to: newStatus, nextEventTime: nextTime)
+        }
+
+        previousStatus = newStatus
+        currentStatus = newStatus
+    }
+
+    /// Find the time string for the next relevant event after the given slot.
+    private func nextEventTimeString(for status: PowerStatus, after slotIndex: Int, use24h: Bool) -> String? {
+        guard let schedule = todaySchedule else { return nil }
+        let targetStatuses: Set<PowerStatus> = status == .off ? [.on] : [.off, .partial]
+        if let next = schedule.slots.first(where: { $0.id > slotIndex && targetStatuses.contains($0.status) }) {
+            return HourSlot.formatTime(slotId: next.id, use24h: use24h)
+        }
+        if let tomorrow = tomorrowSchedule,
+           let first = tomorrow.slots.first(where: { targetStatuses.contains($0.status) }) {
+            return HourSlot.formatTime(slotId: first.id, use24h: use24h)
+        }
+        return nil
+    }
+
+    // MARK: - Status Timer
+
+    /// 60-second timer that catches hour-boundary status changes between fetches.
+    private func startStatusTimer() {
+        statusTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            Task { @MainActor in
+                self.refreshCurrentStatus()
+                self.checkUpcomingOutageWarning()
+            }
+        }
+    }
+
+    /// Check if an outage is approaching and fire a warning notification if needed.
+    private func checkUpcomingOutageWarning() {
+        guard config.notificationsEnabled,
+              config.upcomingOutageWarning,
+              currentStatus == .on || currentStatus == .partial,
+              let schedule = todaySchedule else { return }
+
+        let kyiv = Self.kyiv
+        var calendar = Calendar.current
+        calendar.timeZone = kyiv
+        let now = Date()
+        let currentHour = calendar.component(.hour, from: now)
+        let currentMinute = calendar.component(.minute, from: now)
+        let currentSlot = currentHour + 1
+
+        // Find next off/partial slot
+        guard let nextOff = schedule.slots.first(where: { $0.id > currentSlot && ($0.status == .off || $0.status == .partial) }) else {
+            return
+        }
+
+        // Already warned for this slot
+        if lastWarnedSlot == nextOff.id { return }
+
+        // Calculate minutes until the outage slot starts
+        let outageHour = nextOff.id - 1
+        let minutesUntil = (outageHour - currentHour) * 60 - currentMinute
+
+        if minutesUntil > 0, minutesUntil <= config.warningMinutes {
+            let time = HourSlot.formatTime(slotId: nextOff.id, use24h: config.use24HourTime)
+            NotificationManager.shared.sendUpcomingWarning(outageTime: time, minutesUntil: minutesUntil)
+            lastWarnedSlot = nextOff.id
         }
     }
 

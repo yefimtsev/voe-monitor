@@ -47,6 +47,26 @@
 /* Retry */
 "retry.now" = "Retry Now";
 
+/* Notifications — settings */
+"settings.notifications" = "Notifications";
+"settings.notifications_enabled" = "Notifications";
+"settings.warn_before_outage" = "Warn before outage";
+"settings.warning_time" = "Warning time";
+"settings.minutes %lld" = "%lld min";
+
+/* Notifications — content */
+"notification.power_off_title" = "Power Disconnected";
+"notification.power_off_body %@" = "Expected back at %@";
+"notification.power_off_body_no_time" = "No restoration time available";
+"notification.partial_started_title" = "Partial Outage";
+"notification.partial_started_body" = "Partial power outage started";
+"notification.power_on_title" = "Power Restored";
+"notification.power_on_body" = "Power is back on";
+"notification.partial_restored_title" = "Partially Restored";
+"notification.partial_restored_body" = "Power partially restored";
+"notification.warning_title" = "Upcoming Outage";
+"notification.warning_body %@ %lld" = "Outage at %1$@ — in ~%2$lld min";
+
 /* Errors */
 "error.no_queue" = "Queue not selected. Choose a queue in Settings.";
 "error.no_network" = "No network connection";

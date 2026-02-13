@@ -14,6 +14,7 @@ struct InlineSettingsView: View {
             header
             VStack(spacing: 12) {
                 queueSection
+                notificationsSection
                 generalSection
             }
         }
@@ -64,6 +65,44 @@ struct InlineSettingsView: View {
             }
             .pickerStyle(.menu)
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(10)
+        .glassEffect(in: .rect(cornerRadius: 12))
+    }
+
+    // MARK: - Notifications
+
+    private var notificationsSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader("settings.notifications")
+
+            Toggle("settings.notifications_enabled", isOn: Binding(
+                get: { service.config.notificationsEnabled },
+                set: { service.config.notificationsEnabled = $0 }
+            ))
+            .font(.system(size: 12))
+
+            if service.config.notificationsEnabled {
+                Toggle("settings.warn_before_outage", isOn: Binding(
+                    get: { service.config.upcomingOutageWarning },
+                    set: { service.config.upcomingOutageWarning = $0 }
+                ))
+                .font(.system(size: 12))
+
+                if service.config.upcomingOutageWarning {
+                    Picker("settings.warning_time", selection: Binding(
+                        get: { service.config.warningMinutes },
+                        set: { service.config.warningMinutes = $0 }
+                    )) {
+                        Text("settings.minutes \(15)").tag(15)
+                        Text("settings.minutes \(30)").tag(30)
+                        Text("settings.minutes \(60)").tag(60)
+                    }
+                    .pickerStyle(.menu)
+                    .font(.system(size: 12))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
         }
         .padding(10)
         .glassEffect(in: .rect(cornerRadius: 12))

@@ -47,6 +47,26 @@
 /* Retry */
 "retry.now" = "Повторити";
 
+/* Notifications — settings */
+"settings.notifications" = "Сповіщення";
+"settings.notifications_enabled" = "Сповіщення";
+"settings.warn_before_outage" = "Попереджати перед відключенням";
+"settings.warning_time" = "Час попередження";
+"settings.minutes %lld" = "%lld хв";
+
+/* Notifications — content */
+"notification.power_off_title" = "Світло вимкнено";
+"notification.power_off_body %@" = "Очікується о %@";
+"notification.power_off_body_no_time" = "Час відновлення невідомий";
+"notification.partial_started_title" = "Часткове відключення";
+"notification.partial_started_body" = "Почалося часткове відключення";
+"notification.power_on_title" = "Світло є";
+"notification.power_on_body" = "Електропостачання відновлено";
+"notification.partial_restored_title" = "Частково відновлено";
+"notification.partial_restored_body" = "Електропостачання частково відновлено";
+"notification.warning_title" = "Наближається відключення";
+"notification.warning_body %@ %lld" = "Відключення о %1$@ — за ~%2$lld хв";
+
 /* Errors */
 "error.no_queue" = "Чергу не обрано. Оберіть чергу в Налаштуваннях.";
 "error.no_network" = "Немає з'єднання з мережею";

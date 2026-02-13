@@ -9,17 +9,41 @@ struct AppConfig: Codable {
     var selectedQueue: String
     /// Whether to display times in 24-hour format. Default `true` (standard in Ukraine).
     var use24HourTime: Bool
+    /// Whether power status change notifications are enabled.
+    var notificationsEnabled: Bool
+    /// Whether to warn before an upcoming outage.
+    var upcomingOutageWarning: Bool
+    /// Minutes before outage to fire the warning notification.
+    var warningMinutes: Int
 
-    static let `default` = Self(selectedQueue: "", use24HourTime: true)
+    static let `default` = Self(
+        selectedQueue: "",
+        use24HourTime: true,
+        notificationsEnabled: false,
+        upcomingOutageWarning: true,
+        warningMinutes: 30
+    )
 
-    init(selectedQueue: String, use24HourTime: Bool) {
+    init(
+        selectedQueue: String,
+        use24HourTime: Bool,
+        notificationsEnabled: Bool = false,
+        upcomingOutageWarning: Bool = true,
+        warningMinutes: Int = 30
+    ) {
         self.selectedQueue = selectedQueue
         self.use24HourTime = use24HourTime
+        self.notificationsEnabled = notificationsEnabled
+        self.upcomingOutageWarning = upcomingOutageWarning
+        self.warningMinutes = warningMinutes
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         selectedQueue = try container.decodeIfPresent(String.self, forKey: .selectedQueue) ?? Self.default.selectedQueue
         use24HourTime = try container.decodeIfPresent(Bool.self, forKey: .use24HourTime) ?? Self.default.use24HourTime
+        notificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .notificationsEnabled) ?? Self.default.notificationsEnabled
+        upcomingOutageWarning = try container.decodeIfPresent(Bool.self, forKey: .upcomingOutageWarning) ?? Self.default.upcomingOutageWarning
+        warningMinutes = try container.decodeIfPresent(Int.self, forKey: .warningMinutes) ?? Self.default.warningMinutes
     }
 }
