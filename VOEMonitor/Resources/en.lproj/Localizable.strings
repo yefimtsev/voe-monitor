@@ -35,6 +35,10 @@
 "settings.time_format" = "Time Format";
 "settings.time_24h" = "24-hour";
 "settings.time_12h" = "12-hour (AM/PM)";
+"settings.language" = "Language";
+"settings.language_system" = "System Default";
+"settings.language_en" = "English";
+"settings.language_uk" = "Українська";
 
 /* General */
 "about.general" = "General";

@@ -8,6 +8,7 @@ struct VOEMonitorApp: App {
     var body: some Scene {
         MenuBarExtra {
             MenuBarView(service: scheduleService)
+                .environment(\.locale, scheduleService.config.language.resolvedLocale)
         } label: {
             Label {
                 Text("VOE Monitor")

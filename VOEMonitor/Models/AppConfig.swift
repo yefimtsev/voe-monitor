@@ -15,13 +15,16 @@ struct AppConfig: Codable {
     var upcomingOutageWarning: Bool
     /// Minutes before outage to fire the warning notification.
     var warningMinutes: Int
+    /// In-app language override.
+    var language: AppLanguage
 
     static let `default` = Self(
         selectedQueue: "",
         use24HourTime: true,
         notificationsEnabled: false,
         upcomingOutageWarning: true,
-        warningMinutes: 30
+        warningMinutes: 30,
+        language: .system
     )
 
     init(
@@ -29,13 +32,15 @@ struct AppConfig: Codable {
         use24HourTime: Bool,
         notificationsEnabled: Bool = false,
         upcomingOutageWarning: Bool = true,
-        warningMinutes: Int = 30
+        warningMinutes: Int = 30,
+        language: AppLanguage = .system
     ) {
         self.selectedQueue = selectedQueue
         self.use24HourTime = use24HourTime
         self.notificationsEnabled = notificationsEnabled
         self.upcomingOutageWarning = upcomingOutageWarning
         self.warningMinutes = warningMinutes
+        self.language = language
     }
 
     init(from decoder: Decoder) throws {
@@ -45,5 +50,6 @@ struct AppConfig: Codable {
         notificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .notificationsEnabled) ?? Self.default.notificationsEnabled
         upcomingOutageWarning = try container.decodeIfPresent(Bool.self, forKey: .upcomingOutageWarning) ?? Self.default.upcomingOutageWarning
         warningMinutes = try container.decodeIfPresent(Int.self, forKey: .warningMinutes) ?? Self.default.warningMinutes
+        language = try container.decodeIfPresent(AppLanguage.self, forKey: .language) ?? Self.default.language
     }
 }

@@ -114,6 +114,18 @@ struct InlineSettingsView: View {
         VStack(alignment: .leading, spacing: 8) {
             sectionHeader("about.general")
 
+            Picker("settings.language", selection: Binding(
+                get: { service.config.language },
+                set: { service.config.language = $0 }
+            )) {
+                Text("settings.language_system").tag(AppLanguage.system)
+                Text("settings.language_en").tag(AppLanguage.en)
+                Text("settings.language_uk").tag(AppLanguage.uk)
+            }
+            .pickerStyle(.menu)
+            .font(.system(size: 12))
+            .frame(maxWidth: .infinity, alignment: .leading)
+
             Picker("settings.time_format", selection: Binding(
                 get: { service.config.use24HourTime },
                 set: { service.config.use24HourTime = $0 }
