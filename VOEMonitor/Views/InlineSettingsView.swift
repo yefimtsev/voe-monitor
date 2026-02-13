@@ -75,6 +75,17 @@ struct InlineSettingsView: View {
         VStack(alignment: .leading, spacing: 8) {
             sectionHeader("about.general")
 
+            Picker("settings.time_format", selection: Binding(
+                get: { service.config.use24HourTime },
+                set: { service.config.use24HourTime = $0 }
+            )) {
+                Text("settings.time_24h").tag(true)
+                Text("settings.time_12h").tag(false)
+            }
+            .pickerStyle(.menu)
+            .font(.system(size: 12))
+            .frame(maxWidth: .infinity, alignment: .leading)
+
             Toggle("about.launch_at_login", isOn: $launchAtLogin)
                 .font(.system(size: 12))
                 .onChange(of: launchAtLogin) { _, newValue in

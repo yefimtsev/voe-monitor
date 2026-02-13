@@ -5,11 +5,15 @@
 "status.unknown" = "Невідомо";
 
 /* Next event */
-"next.power_at %@" = "Світло о %@";
-"next.power_tomorrow_at %@" = "Світло завтра о %@";
-"next.outage_at %@" = "Відключення о %@";
-"next.outage_tomorrow_at %@" = "Відключення завтра о %@";
+"next.power_at %@ %@" = "Світло о %1$@ | %2$@";
+"next.power_tomorrow_at %@ %@" = "Світло завтра о %1$@ | %2$@";
+"next.outage_at %@ %@" = "Відключення о %1$@ | %2$@";
+"next.outage_tomorrow_at %@ %@" = "Відключення завтра о %1$@ | %2$@";
 "next.no_outages" = "Відключень не заплановано";
+
+/* Countdown */
+"countdown.hours %lld" = "~%lldг";
+"countdown.less_than_hour" = "< 1г";
 
 /* Schedule */
 "schedule.today" = "Сьогодні";
@@ -28,6 +32,9 @@
 "settings.refresh_now" = "Оновити зараз";
 "settings.select_queue" = "Оберіть чергу...";
 "settings.back" = "Назад";
+"settings.time_format" = "Формат часу";
+"settings.time_24h" = "24-годинний";
+"settings.time_12h" = "12-годинний (AM/PM)";
 
 /* General */
 "about.general" = "Загальне";

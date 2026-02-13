@@ -27,6 +27,9 @@ final class ScheduleService {
             if oldValue.selectedQueue != config.selectedQueue {
                 Task { await fetch() }
             }
+            if oldValue.use24HourTime != config.use24HourTime {
+                updateNextOutageText()
+            }
         }
     }
 
@@ -167,28 +170,33 @@ final class ScheduleService {
         calendar.timeZone = kyiv
         let currentHour = calendar.component(.hour, from: Date())
         let currentSlot = currentHour + 1
+        let use24h = config.use24HourTime
 
         switch currentStatus {
         case .off:
             if let nextOn = schedule.slots.first(where: { $0.id > currentSlot && $0.status == .on }) {
-                let time = String(format: "%02d:00", nextOn.id - 1)
-                nextOutageText = String(localized: "next.power_at \(time)")
+                let time = HourSlot.formatTime(slotId: nextOn.id, use24h: use24h)
+                let countdown = Self.countdownText(from: currentHour, toSlotId: nextOn.id, isTomorrow: false)
+                nextOutageText = String(localized: "next.power_at \(time) \(countdown)")
             } else if let tomorrow = tomorrowSchedule,
                       let firstOn = tomorrow.slots.first(where: { $0.status == .on }) {
-                let time = String(format: "%02d:00", firstOn.id - 1)
-                nextOutageText = String(localized: "next.power_tomorrow_at \(time)")
+                let time = HourSlot.formatTime(slotId: firstOn.id, use24h: use24h)
+                let countdown = Self.countdownText(from: currentHour, toSlotId: firstOn.id, isTomorrow: true)
+                nextOutageText = String(localized: "next.power_tomorrow_at \(time) \(countdown)")
             } else {
                 nextOutageText = ""
             }
 
         case .on, .partial:
             if let nextOff = schedule.slots.first(where: { $0.id > currentSlot && ($0.status == .off || $0.status == .partial) }) {
-                let time = String(format: "%02d:00", nextOff.id - 1)
-                nextOutageText = String(localized: "next.outage_at \(time)")
+                let time = HourSlot.formatTime(slotId: nextOff.id, use24h: use24h)
+                let countdown = Self.countdownText(from: currentHour, toSlotId: nextOff.id, isTomorrow: false)
+                nextOutageText = String(localized: "next.outage_at \(time) \(countdown)")
             } else if let tomorrow = tomorrowSchedule,
                       let firstOff = tomorrow.slots.first(where: { $0.status == .off || $0.status == .partial }) {
-                let time = String(format: "%02d:00", firstOff.id - 1)
-                nextOutageText = String(localized: "next.outage_tomorrow_at \(time)")
+                let time = HourSlot.formatTime(slotId: firstOff.id, use24h: use24h)
+                let countdown = Self.countdownText(from: currentHour, toSlotId: firstOff.id, isTomorrow: true)
+                nextOutageText = String(localized: "next.outage_tomorrow_at \(time) \(countdown)")
             } else {
                 nextOutageText = String(localized: "next.no_outages")
             }
@@ -196,6 +204,21 @@ final class ScheduleService {
         case .unknown:
             nextOutageText = ""
         }
+    }
+
+    /// Build a countdown string like `"~3h"` or `"< 1h"`.
+    private static func countdownText(from currentHour: Int, toSlotId: Int, isTomorrow: Bool) -> String {
+        let targetHour = toSlotId - 1
+        let hours: Int
+        if isTomorrow {
+            hours = (24 - currentHour) + targetHour
+        } else {
+            hours = targetHour - currentHour
+        }
+        if hours < 1 {
+            return String(localized: "countdown.less_than_hour")
+        }
+        return String(localized: "countdown.hours \(hours)")
     }
 
     // MARK: - Update Check

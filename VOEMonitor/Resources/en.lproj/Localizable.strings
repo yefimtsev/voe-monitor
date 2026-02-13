@@ -5,11 +5,15 @@
 "status.unknown" = "Unknown";
 
 /* Next event */
-"next.power_at %@" = "Power at %@";
-"next.power_tomorrow_at %@" = "Power tomorrow at %@";
-"next.outage_at %@" = "Outage at %@";
-"next.outage_tomorrow_at %@" = "Outage tomorrow at %@";
+"next.power_at %@ %@" = "Power at %1$@ | %2$@";
+"next.power_tomorrow_at %@ %@" = "Power tomorrow at %1$@ | %2$@";
+"next.outage_at %@ %@" = "Outage at %1$@ | %2$@";
+"next.outage_tomorrow_at %@ %@" = "Outage tomorrow at %1$@ | %2$@";
 "next.no_outages" = "No outages planned";
+
+/* Countdown */
+"countdown.hours %lld" = "~%lldh";
+"countdown.less_than_hour" = "< 1h";
 
 /* Schedule */
 "schedule.today" = "Today";
@@ -28,6 +32,9 @@
 "settings.refresh_now" = "Refresh now";
 "settings.select_queue" = "Select queue...";
 "settings.back" = "Back";
+"settings.time_format" = "Time Format";
+"settings.time_24h" = "24-hour";
+"settings.time_12h" = "12-hour (AM/PM)";
 
 /* General */
 "about.general" = "General";

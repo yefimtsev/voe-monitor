@@ -186,25 +186,44 @@ struct MenuBarView: View {
         calendar.timeZone = kyiv
         let currentHour = calendar.component(.hour, from: Date())
         let currentSlot = currentHour + 1
+        let use24h = service.config.use24HourTime
 
-        return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 3), count: 12), spacing: 3) {
-            ForEach(slots) { slot in
-                let isCurrent = highlightCurrent && slot.id == currentSlot
-                VStack(spacing: 2) {
-                    Text(slot.shortHour)
-                        .font(.system(size: 8, weight: isCurrent ? .bold : .medium, design: .monospaced))
-                        .foregroundStyle(isCurrent ? .primary : .secondary)
+        let amSlots = Array(slots.prefix(12))
+        let pmSlots = Array(slots.suffix(12))
 
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(colorForSlot(slot))
-                        .frame(height: 18)
-                        .overlay {
-                            if isCurrent {
-                                RoundedRectangle(cornerRadius: 4)
-                                    .strokeBorder(.white, lineWidth: 2)
+        return VStack(spacing: use24h ? 3 : 6) {
+            slotRow(slots: amSlots, highlightCurrent: highlightCurrent, currentSlot: currentSlot, use24h: use24h, periodLabel: use24h ? nil : "AM")
+            slotRow(slots: pmSlots, highlightCurrent: highlightCurrent, currentSlot: currentSlot, use24h: use24h, periodLabel: use24h ? nil : "PM")
+        }
+    }
+
+    private func slotRow(slots: [HourSlot], highlightCurrent: Bool, currentSlot: Int, use24h: Bool, periodLabel: String?) -> some View {
+        VStack(spacing: 1) {
+            if let label = periodLabel {
+                Text(label)
+                    .font(.system(size: 7, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(.tertiary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 3), count: 12), spacing: 3) {
+                ForEach(slots) { slot in
+                    let isCurrent = highlightCurrent && slot.id == currentSlot
+                    VStack(spacing: 2) {
+                        Text(slot.shortHour(use24h: use24h))
+                            .font(.system(size: 8, weight: isCurrent ? .bold : .medium, design: .monospaced))
+                            .foregroundStyle(isCurrent ? .primary : .secondary)
+
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(colorForSlot(slot))
+                            .frame(height: 18)
+                            .overlay {
+                                if isCurrent {
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .strokeBorder(.white, lineWidth: 2)
+                                }
                             }
-                        }
-                        .shadow(color: isCurrent ? statusColor.opacity(0.4) : .clear, radius: 3)
+                            .shadow(color: isCurrent ? statusColor.opacity(0.4) : .clear, radius: 3)
+                    }
                 }
             }
         }
