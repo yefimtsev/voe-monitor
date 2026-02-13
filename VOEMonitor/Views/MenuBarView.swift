@@ -249,12 +249,38 @@ struct MenuBarView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
+            if service.lastError != nil, let retryAt = service.nextRetryAt {
+                retryBanner(retryAt: retryAt)
+            }
+
             if let version = service.availableUpdate {
                 updateBanner(version: version)
             }
 
             actionButtons
         }
+    }
+
+    // MARK: - Retry Banner
+
+    private func retryBanner(retryAt: Date) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: "exclamationmark.arrow.trianglehead.counterclockwise.rotate.90")
+                .foregroundStyle(.orange)
+            Text(retryAt, style: .relative)
+                .font(.system(size: 11, weight: .medium))
+            Spacer()
+            Button {
+                service.retryNow()
+            } label: {
+                Text("retry.now")
+                    .font(.system(size: 10, weight: .semibold))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .glassEffect(in: .rect(cornerRadius: 8))
     }
 
     // MARK: - Update Banner

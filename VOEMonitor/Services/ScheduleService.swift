@@ -1,9 +1,11 @@
 import Foundation
+import Network
 import SwiftUI
 
 /// Central data service that fetches, parses and exposes the disconnection schedule.
 ///
-/// Refreshes automatically every 10 minutes and checks for app updates on launch.
+/// Refreshes automatically every 10 minutes on success, with exponential backoff on failure.
+/// Monitors network reachability and fetches immediately when connectivity is restored.
 @MainActor
 @Observable
 final class ScheduleService {
@@ -20,6 +22,8 @@ final class ScheduleService {
     var fetchCount = 0
     /// Semantic version string of the latest GitHub release when newer than the running app, otherwise `nil`.
     var availableUpdate: String?
+    /// When set, a retry is scheduled for this date. Used by the UI to display a countdown.
+    var nextRetryAt: Date?
 
     var config: AppConfig {
         didSet {
@@ -37,8 +41,17 @@ final class ScheduleService {
 
     /// Minimum interval between network fetches to avoid redundant requests.
     private static let staleness: TimeInterval = 120
+    /// Normal refresh interval on success (10 minutes).
+    private static let normalInterval: TimeInterval = 600
+    /// Backoff intervals for consecutive failures.
+    private static let backoffIntervals: [TimeInterval] = [30, 60, 120, 300, 600]
+
     private var refreshTimer: Timer?
+    private var retryCountdownTimer: Timer?
     private var lastFetchedAt: Date?
+    private var retryCount = 0
+    private let networkMonitor = NWPathMonitor()
+    private var hasNetwork = true
 
     // swiftlint:disable force_unwrapping
     private static let githubURL = URL(string: "https://raw.githubusercontent.com/vn-progr/gpv-voe-vinnytsia/main/data/Vinnytsiaoblenerho.json")!
@@ -55,7 +68,7 @@ final class ScheduleService {
 
     init() {
         config = ConfigManager.shared.load()
-        startAutoRefresh()
+        startNetworkMonitor()
         Task {
             await fetch()
             await checkForUpdate()
@@ -88,12 +101,88 @@ final class ScheduleService {
             let (data, _) = try await URLSession.shared.data(from: Self.githubURL)
             let decoded = try JSONDecoder().decode(ScheduleResponse.self, from: data)
             applyResult(decoded)
+            retryCount = 0
         } catch {
             lastError = error.localizedDescription
+            retryCount += 1
         }
 
         isLoading = false
+        scheduleNextFetch()
     }
+
+    /// Immediately retry, resetting the backoff counter.
+    func retryNow() {
+        retryCount = 0
+        stopRetryCountdown()
+        Task { await fetch() }
+    }
+
+    // MARK: - Dynamic Scheduling
+
+    private func scheduleNextFetch() {
+        refreshTimer?.invalidate()
+        stopRetryCountdown()
+
+        let interval: TimeInterval
+        if lastError != nil {
+            let index = min(retryCount - 1, Self.backoffIntervals.count - 1)
+            interval = Self.backoffIntervals[max(0, index)]
+            nextRetryAt = Date().addingTimeInterval(interval)
+            startRetryCountdown()
+        } else {
+            interval = Self.normalInterval
+            nextRetryAt = nil
+        }
+
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { [weak self] _ in
+            guard let self else { return }
+            Task { @MainActor in
+                await self.fetch()
+            }
+        }
+    }
+
+    /// 1-second timer that keeps ``nextRetryAt`` ticking for UI countdown. Clears when retry fires.
+    private func startRetryCountdown() {
+        retryCountdownTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            Task { @MainActor in
+                if let target = self.nextRetryAt, Date() >= target {
+                    self.stopRetryCountdown()
+                }
+            }
+        }
+    }
+
+    private func stopRetryCountdown() {
+        retryCountdownTimer?.invalidate()
+        retryCountdownTimer = nil
+        nextRetryAt = nil
+    }
+
+    // MARK: - Network Monitoring
+
+    private func startNetworkMonitor() {
+        networkMonitor.pathUpdateHandler = { [weak self] path in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                let wasOffline = !self.hasNetwork
+                self.hasNetwork = path.status == .satisfied
+
+                if self.hasNetwork, wasOffline {
+                    // Network restored — fetch immediately
+                    self.retryCount = 0
+                    await self.fetch()
+                } else if !self.hasNetwork {
+                    self.lastError = String(localized: "error.no_network")
+                }
+            }
+        }
+        networkMonitor.start(queue: DispatchQueue(label: "com.voemonitor.network"))
+    }
+
+    // MARK: - Applying Results
 
     /// Parse the API response and update today/tomorrow schedules.
     private func applyResult(_ response: ScheduleResponse) {
@@ -236,17 +325,6 @@ final class ScheduleService {
             }
         } catch {
             // Silent fail — update check is non-critical
-        }
-    }
-
-    // MARK: - Auto Refresh
-
-    private func startAutoRefresh() {
-        refreshTimer = Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            Task { @MainActor in
-                await self.fetch()
-            }
         }
     }
 }

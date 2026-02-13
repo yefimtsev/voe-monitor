@@ -44,5 +44,9 @@
 /* Update */
 "update.available %@" = "Update available: v%@";
 
+/* Retry */
+"retry.now" = "Retry Now";
+
 /* Errors */
 "error.no_queue" = "Queue not selected. Choose a queue in Settings.";
+"error.no_network" = "No network connection";

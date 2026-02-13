@@ -44,5 +44,9 @@
 /* Update */
 "update.available %@" = "Доступне оновлення: v%@";
 
+/* Retry */
+"retry.now" = "Повторити";
+
 /* Errors */
 "error.no_queue" = "Чергу не обрано. Оберіть чергу в Налаштуваннях.";
+"error.no_network" = "Немає з'єднання з мережею";
