@@ -397,20 +397,32 @@ final class ScheduleService {
         }
     }
 
-    /// Build a countdown string like `"~3h"` or `"< 1h"`.
+    /// Build a countdown string like `"~2h 35m"` or `"< 1m"`.
     private func countdownText(from currentHour: Int, toSlotId: Int, isTomorrow: Bool) -> String {
+        let kyiv = Self.kyiv
+        var calendar = Calendar.current
+        calendar.timeZone = kyiv
+        let currentMinute = calendar.component(.minute, from: Date())
+
         let targetHour = toSlotId - 1
-        let hours: Int
+        let totalMinutes: Int
         if isTomorrow {
-            hours = (24 - currentHour) + targetHour
+            totalMinutes = ((24 - currentHour) + targetHour) * 60 - currentMinute
         } else {
-            hours = targetHour - currentHour
+            totalMinutes = (targetHour - currentHour) * 60 - currentMinute
         }
+
         let locale = currentLocale
-        if hours < 1 {
-            return String(localized: "countdown.less_than_hour", locale: locale)
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+
+        if totalMinutes < 1 {
+            return String(localized: "countdown.less_than_minute", locale: locale)
         }
-        return String(localized: "countdown.hours \(hours)", locale: locale)
+        if hours == 0 {
+            return String(localized: "countdown.minutes \(minutes)", locale: locale)
+        }
+        return String(localized: "countdown.hours_minutes \(hours) \(minutes)", locale: locale)
     }
 
     // MARK: - Update Check

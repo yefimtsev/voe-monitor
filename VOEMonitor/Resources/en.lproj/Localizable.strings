@@ -12,8 +12,9 @@
 "next.no_outages" = "No outages planned";
 
 /* Countdown */
-"countdown.hours %lld" = "~%lldh";
-"countdown.less_than_hour" = "< 1h";
+"countdown.hours_minutes %lld %lld" = "~%1$lldh %2$lldm";
+"countdown.minutes %lld" = "~%lldm";
+"countdown.less_than_minute" = "< 1m";
 
 /* Schedule */
 "schedule.today" = "Today";

@@ -151,6 +151,11 @@ struct InlineSettingsView: View {
                         launchAtLogin = SMAppService.mainApp.status == .enabled
                     }
                 }
+
+            Text("v\(ScheduleService.appVersion)")
+                .font(.system(size: 10))
+                .foregroundStyle(.quaternary)
+                .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .padding(10)
         .glassEffect(in: .rect(cornerRadius: 12))

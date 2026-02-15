@@ -12,8 +12,9 @@
 "next.no_outages" = "Відключень не заплановано";
 
 /* Countdown */
-"countdown.hours %lld" = "~%lldг";
-"countdown.less_than_hour" = "< 1г";
+"countdown.hours_minutes %lld %lld" = "~%1$lldг %2$lldхв";
+"countdown.minutes %lld" = "~%lldхв";
+"countdown.less_than_minute" = "< 1хв";
 
 /* Schedule */
 "schedule.today" = "Сьогодні";
