@@ -1,7 +1,7 @@
 // Base configuration shared between Debug and Release
 
 SWIFT_VERSION = 6.0
-MACOSX_DEPLOYMENT_TARGET = 26.0
+MACOSX_DEPLOYMENT_TARGET = 15.0
 PRODUCT_BUNDLE_IDENTIFIER = com.github.yefimtsev.VOEMonitor
 PRODUCT_NAME = VOE Monitor
 MARKETING_VERSION = 0.0.0

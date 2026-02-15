@@ -137,7 +137,7 @@ jobs:
             desc "Power outage schedule for Vinnytsia region in your menubar"
             homepage "https://github.com/yefimtsev/voe-monitor"
 
-            depends_on macos: ">= :tahoe"
+            depends_on macos: ">= :sequoia"
 
             app "VOE Monitor.app"
 

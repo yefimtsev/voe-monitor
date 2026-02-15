@@ -28,6 +28,7 @@ Package.resolved
 .claude/
 CC-Session-Logs/
 CLAUDE.md
+docs/
 
 # macOS
 .DS_Store

@@ -67,7 +67,7 @@ struct InlineSettingsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(10)
-        .glassEffect(in: .rect(cornerRadius: 12))
+        .adaptiveGlass(in: .rect(cornerRadius: 12))
     }
 
     // MARK: - Notifications
@@ -106,7 +106,7 @@ struct InlineSettingsView: View {
             }
         }
         .padding(10)
-        .glassEffect(in: .rect(cornerRadius: 12))
+        .adaptiveGlass(in: .rect(cornerRadius: 12))
     }
 
     // MARK: - General
@@ -158,7 +158,7 @@ struct InlineSettingsView: View {
                 .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .padding(10)
-        .glassEffect(in: .rect(cornerRadius: 12))
+        .adaptiveGlass(in: .rect(cornerRadius: 12))
     }
 
     // MARK: - Helpers
