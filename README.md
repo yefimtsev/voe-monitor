@@ -23,11 +23,9 @@ brew tap yefimtsev/tap
 brew install --cask voe-monitor
 ```
 
-**Manual**: Download the latest `.zip` from [Releases](https://github.com/yefimtsev/voe-monitor/releases), unzip, drag to Applications.
+**Manual**: Download the latest `.dmg` from [Releases](https://github.com/yefimtsev/voe-monitor/releases), open it, drag to Applications.
 
-First launch (manual install): right-click the app → Open (needed once because the app isn't code-signed).
-
-Requires **macOS 26 (Tahoe)** or later.
+Requires **macOS 15 (Sequoia)** or later.
 
 ## Usage
 
@@ -35,9 +33,14 @@ Requires **macOS 26 (Tahoe)** or later.
 2. Click the bolt icon → Settings → pick your queue.
 3. That's it. The schedule refreshes automatically every 10 minutes.
 
-The app tells you when the next outage or restoration is expected, so you can plan around it. If there's an app update available, a blue banner will show up in the panel.
+The app tells you when the next outage or restoration is expected, with a countdown (`~2h 35m`) so you can plan around it. If there's an app update available, a banner will show up in the panel.
 
-Turn on "Launch at Login" in settings if you want it always running.
+In settings you can also:
+
+- Turn on **notifications** for power status changes and upcoming outage warnings
+- Switch between **English and Ukrainian** (or follow system language)
+- Choose **12-hour or 24-hour** time format
+- Enable **Launch at Login**
 
 ## Where the data comes from
 
@@ -45,7 +48,7 @@ The schedule is fetched from a [community-maintained JSON file](https://github.c
 
 ## Building from source
 
-You'll need Xcode with macOS 26 SDK and [xcodegen](https://github.com/yonaskolb/XcodeGen).
+You'll need Xcode 26+ and [xcodegen](https://github.com/yonaskolb/XcodeGen).
 
 ```bash
 # Generate the Xcode project
@@ -61,8 +64,8 @@ No external dependencies. Pure Swift and SwiftUI.
 
 - Swift 6 with strict concurrency
 - SwiftUI + Observation framework
-- Liquid Glass UI (macOS Tahoe)
-- Localized in English and Ukrainian
+- Liquid Glass on macOS 26+, translucent material fallback on Sequoia
+- Localized in English and Ukrainian (with in-app override)
 - Sandboxed, network-only (outbound HTTPS to GitHub)
 - Zero external packages
 
