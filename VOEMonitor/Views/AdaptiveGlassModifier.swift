@@ -20,6 +20,7 @@ struct AdaptiveGlassModifier<S: Shape>: ViewModifier {
                 .overlay {
                     if interactive && isHovered {
                         shape.fill(.white.opacity(0.07))
+                            .allowsHitTesting(false)
                     }
                 }
                 .onHover { hovering in

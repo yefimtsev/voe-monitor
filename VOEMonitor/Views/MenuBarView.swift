@@ -34,33 +34,34 @@ struct MenuBarView: View {
     // MARK: - Header
 
     private var headerSection: some View {
-        HStack(spacing: 12) {
-            Image(systemName: iconName)
-                .contentTransition(.symbolEffect(.replace))
-                .symbolEffect(.pulse, options: .repeating, isActive: service.currentStatus == .off)
-                .symbolEffect(.breathe, options: .repeating, isActive: service.currentStatus == .partial)
-                .font(.system(size: 28, weight: .medium))
-                .foregroundStyle(statusColor)
-                .frame(width: 36, height: 36)
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 12) {
+                Image(systemName: iconName)
+                    .contentTransition(.symbolEffect(.replace))
+                    .symbolEffect(.pulse, options: .repeating, isActive: service.currentStatus == .off)
+                    .symbolEffect(.breathe, options: .repeating, isActive: service.currentStatus == .partial)
+                    .font(.system(size: 28, weight: .medium))
+                    .foregroundStyle(statusColor)
+                    .frame(width: 36, height: 36)
 
-            VStack(alignment: .leading, spacing: 2) {
                 Text(statusText)
                     .font(.system(size: 15, weight: .semibold))
-                if !service.nextOutageText.isEmpty {
-                    Text(service.nextOutageText)
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
+
+                Spacer(minLength: 8)
+
+                if !service.queue.isEmpty {
+                    Text(service.queue)
+                        .font(.system(size: 11, weight: .medium))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .adaptiveGlass(in: .capsule)
                 }
             }
 
-            Spacer()
-
-            if !service.queue.isEmpty {
-                Text(service.queue)
-                    .font(.system(size: 11, weight: .medium))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .adaptiveGlass(in: .capsule)
+            if !service.nextOutageText.isEmpty {
+                Text(service.nextOutageText)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
             }
         }
     }
