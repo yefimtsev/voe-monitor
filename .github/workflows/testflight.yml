@@ -25,12 +25,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install tools
-        run: brew install xcodegen
-
-      - name: Generate project
-        run: xcodegen generate
-
       - name: Install Ruby dependencies
         run: bundle install
 

@@ -15,9 +15,6 @@ DerivedData/
 *.dSYM
 build/
 
-# Generated Xcode project (regenerated via xcodegen)
-VOEMonitor.xcodeproj/
-
 # Swift Package Manager
 .build/
 Packages/

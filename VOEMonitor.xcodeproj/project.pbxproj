@@ -1,0 +1,522 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 76;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B758B36C979EF7F322E0D86F /* VOEWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CF56D29ED6FE04FEB9897B1D /* VOEWidget.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DA525583365B6D9052EB6F3E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 80F61323644D39C9F60829A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 441B4A81C9999EAEA7A8A722;
+			remoteInfo = VOEWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		0F00EFFF3B3719ADD6681272 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				B758B36C979EF7F322E0D86F /* VOEWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		1BE8671AF451F4976A5B00F3 /* Debug-macOS.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Debug-macOS.xcconfig"; sourceTree = "<group>"; };
+		30C17486BFE8C36A2F7875A2 /* Debug-iOS.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Debug-iOS.xcconfig"; sourceTree = "<group>"; };
+		370C1EF272F47EEA03173909 /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Base.xcconfig; sourceTree = "<group>"; };
+		4BE735C73A804E411E7B4BDC /* Debug-Widget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Debug-Widget.xcconfig"; sourceTree = "<group>"; };
+		579BEECE8C9BAC2E27D549DF /* Release-Widget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Release-Widget.xcconfig"; sourceTree = "<group>"; };
+		76E78A899AAD2DABBFF3ADAA /* Release-macOS.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Release-macOS.xcconfig"; sourceTree = "<group>"; };
+		855B5DEC2331ACD10116C320 /* Release-iOS.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Release-iOS.xcconfig"; sourceTree = "<group>"; };
+		8A0B547990EBE09DB529F54D /* VOE Monitor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "VOE Monitor.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BAC35C4AB48F6043CFED679D /* VOE Monitor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "VOE Monitor.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CF56D29ED6FE04FEB9897B1D /* VOEWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = VOEWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		101FBC812F49C08600FC2D35 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				/Localized/Resources/Localizable.strings,
+				Info.plist,
+			);
+			target = 2793520A5D7616DBFF157B0B /* VOEMonitor */;
+		};
+		101FBC9E2F49C08800FC2D35 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				/Localized/Resources/Localizable.strings,
+				Info.plist,
+			);
+			target = F9D8EA8BBD0E37D6F987B03E /* VOEMonitorIOS */;
+		};
+		101FBCB52F49C08B00FC2D35 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				/Localized/Localizable.strings,
+				Info.plist,
+			);
+			target = 441B4A81C9999EAEA7A8A722 /* VOEWidget */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		101FBC432F49C08300FC2D35 /* Shared */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Shared; sourceTree = "<group>"; };
+		101FBC762F49C08600FC2D35 /* macOS */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (101FBC812F49C08600FC2D35 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = macOS; sourceTree = "<group>"; };
+		101FBC932F49C08800FC2D35 /* iOS */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (101FBC9E2F49C08800FC2D35 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = iOS; sourceTree = "<group>"; };
+		101FBCAB2F49C08B00FC2D35 /* Widget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (101FBCB52F49C08B00FC2D35 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Widget; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXGroup section */
+		3142BD045D8C16BABEDF6CF6 = {
+			isa = PBXGroup;
+			children = (
+				101FBC432F49C08300FC2D35 /* Shared */,
+				101FBC762F49C08600FC2D35 /* macOS */,
+				101FBC932F49C08800FC2D35 /* iOS */,
+				101FBCAB2F49C08B00FC2D35 /* Widget */,
+				3B46D81620DC0AF368AE4890 /* Config */,
+				A96142C8B79220F409B4B803 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		3B46D81620DC0AF368AE4890 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				370C1EF272F47EEA03173909 /* Base.xcconfig */,
+				30C17486BFE8C36A2F7875A2 /* Debug-iOS.xcconfig */,
+				1BE8671AF451F4976A5B00F3 /* Debug-macOS.xcconfig */,
+				4BE735C73A804E411E7B4BDC /* Debug-Widget.xcconfig */,
+				855B5DEC2331ACD10116C320 /* Release-iOS.xcconfig */,
+				76E78A899AAD2DABBFF3ADAA /* Release-macOS.xcconfig */,
+				579BEECE8C9BAC2E27D549DF /* Release-Widget.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		A96142C8B79220F409B4B803 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BAC35C4AB48F6043CFED679D /* VOE Monitor.app */,
+				8A0B547990EBE09DB529F54D /* VOE Monitor.app */,
+				CF56D29ED6FE04FEB9897B1D /* VOEWidget.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2793520A5D7616DBFF157B0B /* VOEMonitor */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D01C9C244F8B34B6F6EF44FF /* Build configuration list for PBXNativeTarget "VOEMonitor" */;
+			buildPhases = (
+				FF000001000000000000001A /* Sources */,
+				FF000002000000000000001A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				101FBC432F49C08300FC2D35 /* Shared */,
+				101FBC762F49C08600FC2D35 /* macOS */,
+			);
+			name = VOEMonitor;
+			packageProductDependencies = (
+			);
+			productName = VOEMonitor;
+			productReference = BAC35C4AB48F6043CFED679D /* VOE Monitor.app */;
+			productType = "com.apple.product-type.application";
+		};
+		441B4A81C9999EAEA7A8A722 /* VOEWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E59D17328D0CFD1D6C4036DE /* Build configuration list for PBXNativeTarget "VOEWidget" */;
+			buildPhases = (
+				FF000005000000000000001A /* Sources */,
+				FF000006000000000000001A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				101FBC432F49C08300FC2D35 /* Shared */,
+				101FBCAB2F49C08B00FC2D35 /* Widget */,
+			);
+			name = VOEWidget;
+			packageProductDependencies = (
+			);
+			productName = VOEWidget;
+			productReference = CF56D29ED6FE04FEB9897B1D /* VOEWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		F9D8EA8BBD0E37D6F987B03E /* VOEMonitorIOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CF9BD0E4D35507060FB8878F /* Build configuration list for PBXNativeTarget "VOEMonitorIOS" */;
+			buildPhases = (
+				FF000003000000000000001A /* Sources */,
+				FF000004000000000000001A /* Resources */,
+				0F00EFFF3B3719ADD6681272 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4CC7F4AD015DD5E58ECB6CAD /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				101FBC432F49C08300FC2D35 /* Shared */,
+				101FBC932F49C08800FC2D35 /* iOS */,
+			);
+			name = VOEMonitorIOS;
+			packageProductDependencies = (
+			);
+			productName = VOEMonitorIOS;
+			productReference = 8A0B547990EBE09DB529F54D /* VOE Monitor.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		80F61323644D39C9F60829A1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2630;
+				TargetAttributes = {
+					441B4A81C9999EAEA7A8A722 = {
+						ProvisioningStyle = Manual;
+					};
+					F9D8EA8BBD0E37D6F987B03E = {
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = 2073E03117A80396836DBB29 /* Build configuration list for PBXProject "VOEMonitor" */;
+			developmentRegion = uk;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				uk,
+				en,
+			);
+			mainGroup = 3142BD045D8C16BABEDF6CF6;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 56;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2793520A5D7616DBFF157B0B /* VOEMonitor */,
+				F9D8EA8BBD0E37D6F987B03E /* VOEMonitorIOS */,
+				441B4A81C9999EAEA7A8A722 /* VOEWidget */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FF000002000000000000001A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FF000004000000000000001A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FF000006000000000000001A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FF000001000000000000001A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FF000003000000000000001A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FF000005000000000000001A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4CC7F4AD015DD5E58ECB6CAD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 441B4A81C9999EAEA7A8A722 /* VOEWidget */;
+			targetProxy = DA525583365B6D9052EB6F3E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		03A560057D994D8B4E8BB4D0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4BE735C73A804E411E7B4BDC /* Debug-Widget.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Widget/VOEWidget.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Widget/Info.plist;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		0BB1E779B05D3C8D191EFCC4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 579BEECE8C9BAC2E27D549DF /* Release-Widget.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Widget/VOEWidget.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Widget/Info.plist;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		47EE8C72FF6E8E6186C9B5C5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 370C1EF272F47EEA03173909 /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		5DFDBD31CE50F93E51849D6E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 30C17486BFE8C36A2F7875A2 /* Debug-iOS.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = iOS/VOEMonitorIOS.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				INFOPLIST_FILE = iOS/Info.plist;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		82D5E22F2B553F9BA1ABE00B /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 76E78A899AAD2DABBFF3ADAA /* Release-macOS.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = macOS/VOEMonitor.entitlements;
+				INFOPLIST_FILE = macOS/Info.plist;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		84028F733CC88DA43A6B73B0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 370C1EF272F47EEA03173909 /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A46E27C5455C2F758C85C4E2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1BE8671AF451F4976A5B00F3 /* Debug-macOS.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = macOS/VOEMonitor.entitlements;
+				INFOPLIST_FILE = macOS/Info.plist;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		CA5C9C2666C1906E3ACEA8F8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 855B5DEC2331ACD10116C320 /* Release-iOS.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = iOS/VOEMonitorIOS.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				INFOPLIST_FILE = iOS/Info.plist;
+				SDKROOT = iphoneos;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2073E03117A80396836DBB29 /* Build configuration list for PBXProject "VOEMonitor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				84028F733CC88DA43A6B73B0 /* Debug */,
+				47EE8C72FF6E8E6186C9B5C5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CF9BD0E4D35507060FB8878F /* Build configuration list for PBXNativeTarget "VOEMonitorIOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5DFDBD31CE50F93E51849D6E /* Debug */,
+				CA5C9C2666C1906E3ACEA8F8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D01C9C244F8B34B6F6EF44FF /* Build configuration list for PBXNativeTarget "VOEMonitor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A46E27C5455C2F758C85C4E2 /* Debug */,
+				82D5E22F2B553F9BA1ABE00B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E59D17328D0CFD1D6C4036DE /* Build configuration list for PBXNativeTarget "VOEWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				03A560057D994D8B4E8BB4D0 /* Debug */,
+				0BB1E779B05D3C8D191EFCC4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 80F61323644D39C9F60829A1 /* Project object */;
+}
