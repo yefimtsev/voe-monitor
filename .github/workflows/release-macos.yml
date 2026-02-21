@@ -1,9 +1,24 @@
-name: Release
+# Tag convention:
+#   v1.0.0      → triggers macOS release (this workflow)
+#   mac-v1.0.0  → triggers macOS release (this workflow)
+#   beta/1.0.0  → triggers iOS TestFlight (testflight.yml)
+
+name: Release (macOS)
 
 on:
   push:
     tags:
       - "v*"
+      - "mac-v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g. 1.3.0)'
+        required: true
+      dry_run:
+        description: 'Dry run (skip notarize + release)'
+        type: boolean
+        default: false
 
 # Prevent this workflow from running on pull_request or other events
 # even if the workflow file is modified in a PR.
@@ -48,7 +63,9 @@ jobs:
 
       - name: Build release archive
         run: |
-          VERSION=${GITHUB_REF_NAME#v}
+          VERSION=${{ github.event.inputs.version || '${GITHUB_REF_NAME#v}' }}
+          VERSION=${VERSION#v}
+          VERSION=${VERSION#mac-v}
           xcodebuild -project VOEMonitor.xcodeproj -scheme VOEMonitor \
             -configuration Release -archivePath build/VOEMonitor.xcarchive \
             archive CODE_SIGN_IDENTITY="Developer ID Application" \
@@ -79,6 +96,7 @@ jobs:
           test -f build/VOEMonitor.dmg
 
       - name: Notarize app
+        if: ${{ !inputs.dry_run }}
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
@@ -108,6 +126,7 @@ jobs:
           xcrun stapler staple build/VOEMonitor.dmg
 
       - name: Create GitHub Release
+        if: ${{ !inputs.dry_run }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

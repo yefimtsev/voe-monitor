@@ -1,0 +1,50 @@
+name: TestFlight
+
+on:
+  push:
+    tags:
+      - 'beta/*'
+
+# Only one TestFlight upload at a time — don't cancel in-progress builds
+concurrency:
+  group: testflight
+  cancel-in-progress: false
+
+# Tag convention:
+#   v1.0.0      → triggers macOS release (release-macos.yml)
+#   mac-v1.0.0  → triggers macOS release (release-macos.yml)
+#   beta/1.0.0  → triggers iOS TestFlight (this workflow)
+
+jobs:
+  deploy:
+    name: Deploy to TestFlight
+    runs-on: [self-hosted, macOS]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install tools
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: Install Ruby dependencies
+        run: bundle install
+
+      - name: Deploy to TestFlight
+        env:
+          GIT_TAG: ${{ github.ref_name }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        run: bundle exec fastlane beta
+
+# Required GitHub Secrets:
+#   ASC_KEY_ID      — App Store Connect API key ID (App Manager role, not Admin)
+#   ASC_ISSUER_ID   — App Store Connect API issuer ID
+#   ASC_KEY_CONTENT  — Base64-encoded .p8 key file content
+#   MATCH_PASSWORD   — Passphrase for Match certificates repo encryption

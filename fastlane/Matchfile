@@ -1,0 +1,8 @@
+git_url("git@github.com:yefimtsev/voe-certificates.git")
+storage_mode("git")
+type("development")
+app_identifier([
+  "com.github.yefimtsev.VOEMonitor.iOS",
+  "com.github.yefimtsev.VOEMonitor.iOS.Widget"
+])
+team_id("SUM249566D")
