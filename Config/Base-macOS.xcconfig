@@ -1,0 +1,11 @@
+// Base macOS configuration
+#include "Base.xcconfig"
+
+MACOSX_DEPLOYMENT_TARGET = 15.0
+PRODUCT_BUNDLE_IDENTIFIER = com.github.yefimtsev.VOEMonitor
+PRODUCT_NAME = VOE Monitor
+INFOPLIST_FILE = macOS/Info.plist
+CODE_SIGN_ENTITLEMENTS = macOS/VOEMonitor.entitlements
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
+COMBINE_HIDPI_IMAGES = YES
+LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/../Frameworks

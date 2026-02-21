@@ -1,0 +1,11 @@
+// Base Widget configuration
+#include "Base.xcconfig"
+
+IPHONEOS_DEPLOYMENT_TARGET = 17.0
+PRODUCT_BUNDLE_IDENTIFIER = com.github.yefimtsev.VOEMonitor.iOS.Widget
+PRODUCT_NAME = VOEWidget
+INFOPLIST_FILE = Widget/Info.plist
+CODE_SIGN_ENTITLEMENTS = Widget/VOEWidget.entitlements
+CODE_SIGN_STYLE = Manual
+DEVELOPMENT_TEAM[sdk=iphoneos*] = SUM249566D
+LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/Frameworks @executable_path/../../Frameworks

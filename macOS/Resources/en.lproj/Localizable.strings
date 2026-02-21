@@ -1,0 +1,30 @@
+/* Settings */
+"settings.back" = "Back";
+"settings.language" = "Language";
+"settings.language_system" = "System Default";
+"settings.language_en" = "English";
+"settings.language_uk" = "Українська";
+"settings.refresh_now" = "Refresh now";
+
+/* About */
+"about.launch_at_login" = "Launch at Login";
+"about.quit" = "Quit";
+
+/* Update */
+"update.available %@" = "Update available: v%@";
+
+/* Retry */
+"retry.now" = "Retry Now";
+
+/* Notifications — content */
+"notification.power_off_title" = "Power Disconnected";
+"notification.power_off_body %@" = "Expected back at %@";
+"notification.power_off_body_no_time" = "No restoration time available";
+"notification.partial_started_title" = "Partial Outage";
+"notification.partial_started_body" = "Partial power outage started";
+"notification.power_on_title" = "Power Restored";
+"notification.power_on_body" = "Power is back on";
+"notification.partial_restored_title" = "Partially Restored";
+"notification.partial_restored_body" = "Power partially restored";
+"notification.warning_title" = "Upcoming Outage";
+"notification.warning_body %@ %lld" = "Outage at %1$@ — in ~%2$lld min";

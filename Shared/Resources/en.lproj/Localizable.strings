@@ -30,34 +30,36 @@
 
 /* Settings */
 "settings.queue" = "Queue";
-"settings.refresh_now" = "Refresh now";
 "settings.select_queue" = "Select queue...";
-"settings.back" = "Back";
 "settings.time_format" = "Time Format";
 "settings.time_24h" = "24-hour";
 "settings.time_12h" = "12-hour (AM/PM)";
+"settings.notifications" = "Notifications";
+"settings.notifications_enabled" = "Notifications";
+"settings.warn_before_outage" = "Warn before outage";
+"settings.warning_time" = "Warning time";
+"settings.minutes %lld" = "%lld min";
+"settings.back" = "Back";
 "settings.language" = "Language";
 "settings.language_system" = "System Default";
 "settings.language_en" = "English";
 "settings.language_uk" = "Українська";
+"settings.refresh_now" = "Refresh now";
 
 /* General */
 "about.general" = "General";
 "about.launch_at_login" = "Launch at Login";
 "about.quit" = "Quit";
 
+/* Errors */
+"error.no_queue" = "Queue not selected. Choose a queue in Settings.";
+"error.no_network" = "No network connection";
+
 /* Update */
 "update.available %@" = "Update available: v%@";
 
 /* Retry */
 "retry.now" = "Retry Now";
-
-/* Notifications — settings */
-"settings.notifications" = "Notifications";
-"settings.notifications_enabled" = "Notifications";
-"settings.warn_before_outage" = "Warn before outage";
-"settings.warning_time" = "Warning time";
-"settings.minutes %lld" = "%lld min";
 
 /* Notifications — content */
 "notification.power_off_title" = "Power Disconnected";
@@ -72,6 +74,14 @@
 "notification.warning_title" = "Upcoming Outage";
 "notification.warning_body %@ %lld" = "Outage at %1$@ — in ~%2$lld min";
 
-/* Errors */
-"error.no_queue" = "Queue not selected. Choose a queue in Settings.";
-"error.no_network" = "No network connection";
+/* Onboarding (iOS) */
+"onboarding.select_queue" = "Select your disconnection queue to get started";
+"onboarding.continue" = "Continue";
+
+/* Widget */
+"widget.name" = "VOE Schedule";
+"widget.description" = "Power outage schedule for Vinnytsia region";
+"widget.select_queue" = "Select Queue";
+"widget.select_queue_description" = "Choose which disconnection queue to display";
+"widget.no_queue" = "Select queue in app";
+"widget.fetch_error" = "Could not load schedule";

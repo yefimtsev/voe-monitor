@@ -1,5 +1,5 @@
 /// Current power availability state for a given hour slot.
-enum PowerStatus: Equatable {
+public enum PowerStatus: Equatable, Sendable {
     /// Power is available for the full hour.
     case on
     /// Power is disconnected for the full hour.

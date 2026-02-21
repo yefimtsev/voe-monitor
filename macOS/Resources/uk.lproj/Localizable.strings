@@ -1,0 +1,30 @@
+/* Settings */
+"settings.back" = "Назад";
+"settings.language" = "Мова";
+"settings.language_system" = "Системна";
+"settings.language_en" = "English";
+"settings.language_uk" = "Українська";
+"settings.refresh_now" = "Оновити зараз";
+
+/* About */
+"about.launch_at_login" = "Запускати при вході";
+"about.quit" = "Вийти";
+
+/* Update */
+"update.available %@" = "Доступне оновлення: v%@";
+
+/* Retry */
+"retry.now" = "Повторити";
+
+/* Notifications — content */
+"notification.power_off_title" = "Світло вимкнено";
+"notification.power_off_body %@" = "Очікується о %@";
+"notification.power_off_body_no_time" = "Час відновлення невідомий";
+"notification.partial_started_title" = "Часткове відключення";
+"notification.partial_started_body" = "Почалося часткове відключення";
+"notification.power_on_title" = "Світло є";
+"notification.power_on_body" = "Електропостачання відновлено";
+"notification.partial_restored_title" = "Частково відновлено";
+"notification.partial_restored_body" = "Електропостачання частково відновлено";
+"notification.warning_title" = "Наближається відключення";
+"notification.warning_body %@ %lld" = "Відключення о %1$@ — за ~%2$lld хв";

@@ -4,21 +4,21 @@ import Foundation
 ///
 /// Uses a custom `Decodable` initialiser so that new fields can be added
 /// without breaking existing config files on disk.
-struct AppConfig: Codable {
+public struct AppConfig: Codable, Sendable {
     /// Selected disconnection queue, e.g. `"2.1"`. Empty when not yet chosen.
-    var selectedQueue: String
+    public var selectedQueue: String
     /// Whether to display times in 24-hour format. Default `true` (standard in Ukraine).
-    var use24HourTime: Bool
+    public var use24HourTime: Bool
     /// Whether power status change notifications are enabled.
-    var notificationsEnabled: Bool
+    public var notificationsEnabled: Bool
     /// Whether to warn before an upcoming outage.
-    var upcomingOutageWarning: Bool
+    public var upcomingOutageWarning: Bool
     /// Minutes before outage to fire the warning notification.
-    var warningMinutes: Int
+    public var warningMinutes: Int
     /// In-app language override.
-    var language: AppLanguage
+    public var language: AppLanguage
 
-    static let `default` = Self(
+    public static let `default` = Self(
         selectedQueue: "",
         use24HourTime: true,
         notificationsEnabled: false,
@@ -27,7 +27,7 @@ struct AppConfig: Codable {
         language: .system
     )
 
-    init(
+    public init(
         selectedQueue: String,
         use24HourTime: Bool,
         notificationsEnabled: Bool = false,
@@ -43,7 +43,7 @@ struct AppConfig: Codable {
         self.language = language
     }
 
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         selectedQueue = try container.decodeIfPresent(String.self, forKey: .selectedQueue) ?? Self.default.selectedQueue
         use24HourTime = try container.decodeIfPresent(Bool.self, forKey: .use24HourTime) ?? Self.default.use24HourTime

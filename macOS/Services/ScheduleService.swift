@@ -63,11 +63,8 @@ final class ScheduleService {
     /// Tracks the last slot we sent an upcoming outage warning for, to avoid duplicates.
     private var lastWarnedSlot: Int?
 
-    // swiftlint:disable force_unwrapping
-    private static let githubURL = URL(string: "https://raw.githubusercontent.com/vn-progr/gpv-voe-vinnytsia/main/data/Vinnytsiaoblenerho.json")!
+    // swiftlint:disable:next force_unwrapping
     private static let releasesURL = URL(string: "https://api.github.com/repos/yefimtsev/voe-monitor/releases/latest")!
-    private static let kyiv = TimeZone(identifier: "Europe/Kyiv")!
-    // swiftlint:enable force_unwrapping
 
     /// Current app version from `CFBundleShortVersionString`.
     static var appVersion: String {
@@ -109,9 +106,8 @@ final class ScheduleService {
         lastFetchedAt = Date()
 
         do {
-            let (data, _) = try await URLSession.shared.data(from: Self.githubURL)
-            let decoded = try JSONDecoder().decode(ScheduleResponse.self, from: data)
-            applyResult(decoded)
+            let result = try await ScheduleFetcher().fetchSchedule(for: config.selectedQueue)
+            applyResult(result)
             retryCount = 0
         } catch {
             lastError = error.localizedDescription
@@ -210,38 +206,13 @@ final class ScheduleService {
 
     // MARK: - Applying Results
 
-    /// Parse the API response and update today/tomorrow schedules.
-    private func applyResult(_ response: ScheduleResponse) {
-        let gpvKey = "GPV\(config.selectedQueue)"
-
-        var days: [DaySchedule] = []
-
-        for (timestampStr, queues) in response.fact.data {
-            guard let timestamp = Int(timestampStr),
-                  let hourData = queues[gpvKey] else { continue }
-
-            let date = Date(timeIntervalSince1970: TimeInterval(timestamp))
-            let slots = (1 ... 24).map { hour -> HourSlot in
-                let statusStr = hourData[String(hour)] ?? "yes"
-                let status: PowerStatus = switch statusStr {
-                case "yes": .on
-                case "no": .off
-                case "first", "second": .partial
-                default: .unknown
-                }
-                return HourSlot(id: hour, status: status)
-            }
-            days.append(DaySchedule(id: timestamp, date: date, slots: slots))
-        }
-
-        days.sort { $0.id < $1.id }
-
-        let todayTimestamp = response.fact.today
-        todaySchedule = days.first { $0.id == todayTimestamp }
-        tomorrowSchedule = days.first { $0.id > todayTimestamp }
+    /// Apply a fetch result and update today/tomorrow schedules.
+    private func applyResult(_ result: ScheduleFetcher.FetchResult) {
+        todaySchedule = result.todaySchedule
+        tomorrowSchedule = result.tomorrowSchedule
+        lastUpdated = result.lastUpdated
 
         queue = String(localized: "settings.queue", locale: currentLocale) + " \(config.selectedQueue)"
-        lastUpdated = Date(timeIntervalSince1970: TimeInterval(response.lastUpdated))
 
         updateCurrentStatus()
         updateNextOutageText()
@@ -256,23 +227,13 @@ final class ScheduleService {
     }
 
     private func updateCurrentStatus() {
-        guard let schedule = todaySchedule else {
-            currentStatus = .unknown
-            return
-        }
+        let newStatus = ScheduleFetcher.currentStatus(from: todaySchedule, at: Date())
 
-        let kyiv = Self.kyiv
-        var calendar = Calendar.current
-        calendar.timeZone = kyiv
-        let hour = calendar.component(.hour, from: Date())
-        let slotIndex = hour + 1
-
-        let newStatus: PowerStatus
-        if let slot = schedule.slots.first(where: { $0.id == slotIndex }) {
-            newStatus = slot.status
-        } else {
-            newStatus = .unknown
-        }
+        let slotIndex: Int = {
+            var calendar = Calendar.current
+            calendar.timeZone = ScheduleFetcher.kyivTimeZone
+            return calendar.component(.hour, from: Date()) + 1
+        }()
 
         // Detect meaningful transitions and fire notifications
         if config.notificationsEnabled,
@@ -322,9 +283,8 @@ final class ScheduleService {
               currentStatus == .on || currentStatus == .partial,
               let schedule = todaySchedule else { return }
 
-        let kyiv = Self.kyiv
         var calendar = Calendar.current
-        calendar.timeZone = kyiv
+        calendar.timeZone = ScheduleFetcher.kyivTimeZone
         let now = Date()
         let currentHour = calendar.component(.hour, from: now)
         let currentMinute = calendar.component(.minute, from: now)
@@ -355,9 +315,8 @@ final class ScheduleService {
             return
         }
 
-        let kyiv = Self.kyiv
         var calendar = Calendar.current
-        calendar.timeZone = kyiv
+        calendar.timeZone = ScheduleFetcher.kyivTimeZone
         let currentHour = calendar.component(.hour, from: Date())
         let currentSlot = currentHour + 1
         let use24h = config.use24HourTime
@@ -399,9 +358,8 @@ final class ScheduleService {
 
     /// Build a countdown string like `"~2h 35m"` or `"< 1m"`.
     private func countdownText(from currentHour: Int, toSlotId: Int, isTomorrow: Bool) -> String {
-        let kyiv = Self.kyiv
         var calendar = Calendar.current
-        calendar.timeZone = kyiv
+        calendar.timeZone = ScheduleFetcher.kyivTimeZone
         let currentMinute = calendar.component(.minute, from: Date())
 
         let targetHour = toSlotId - 1

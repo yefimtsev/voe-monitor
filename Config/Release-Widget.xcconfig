@@ -1,0 +1,11 @@
+// Widget Release configuration
+#include "Base-Widget.xcconfig"
+
+SWIFT_OPTIMIZATION_LEVEL = -O
+SWIFT_COMPILATION_MODE = wholemodule
+COPY_PHASE_STRIP = YES
+STRIP_INSTALLED_PRODUCT = YES
+ENABLE_NS_ASSERTIONS = NO
+DEAD_CODE_STRIPPING = YES
+DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
+PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*] = match AppStore com.github.yefimtsev.VOEMonitor.iOS.Widget

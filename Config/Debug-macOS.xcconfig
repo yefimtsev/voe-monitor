@@ -1,6 +1,5 @@
-// Debug configuration
-
-#include "Base.xcconfig"
+// macOS Debug configuration
+#include "Base-macOS.xcconfig"
 
 SWIFT_OPTIMIZATION_LEVEL = -Onone
 SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG

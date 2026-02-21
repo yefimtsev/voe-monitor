@@ -2,8 +2,7 @@ import SwiftUI
 
 /// Main panel shown when the menubar icon is clicked.
 struct MenuBarView: View {
-    // swiftlint:disable:next force_unwrapping
-    private static let kyiv = TimeZone(identifier: "Europe/Kyiv")!
+    private static let kyiv = ScheduleFetcher.kyivTimeZone
 
     var service: ScheduleService
     @State private var showTomorrow = false

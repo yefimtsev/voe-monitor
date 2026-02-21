@@ -1,6 +1,5 @@
-// Release configuration
-
-#include "Base.xcconfig"
+// iOS Release configuration
+#include "Base-iOS.xcconfig"
 
 SWIFT_OPTIMIZATION_LEVEL = -O
 SWIFT_COMPILATION_MODE = wholemodule
@@ -9,3 +8,4 @@ STRIP_INSTALLED_PRODUCT = YES
 ENABLE_NS_ASSERTIONS = NO
 DEAD_CODE_STRIPPING = YES
 DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
+PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*] = match AppStore com.github.yefimtsev.VOEMonitor.iOS

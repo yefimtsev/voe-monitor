@@ -1,13 +1,13 @@
 import Foundation
 
 /// User-selectable language override.
-enum AppLanguage: String, Codable, CaseIterable {
+public enum AppLanguage: String, Codable, CaseIterable, Sendable {
     case system
     case en
     case uk
 
     /// The `Locale` corresponding to this selection, or `nil` for system default.
-    var locale: Locale? {
+    public var locale: Locale? {
         switch self {
         case .system: nil
         case .en: Locale(identifier: "en")
@@ -16,7 +16,7 @@ enum AppLanguage: String, Codable, CaseIterable {
     }
 
     /// Resolved locale, falling back to `.current` for system default.
-    var resolvedLocale: Locale {
+    public var resolvedLocale: Locale {
         locale ?? .current
     }
 }

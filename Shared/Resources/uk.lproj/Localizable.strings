@@ -30,34 +30,36 @@
 
 /* Settings */
 "settings.queue" = "Черга";
-"settings.refresh_now" = "Оновити зараз";
 "settings.select_queue" = "Оберіть чергу...";
-"settings.back" = "Назад";
 "settings.time_format" = "Формат часу";
 "settings.time_24h" = "24-годинний";
 "settings.time_12h" = "12-годинний (AM/PM)";
+"settings.notifications" = "Сповіщення";
+"settings.notifications_enabled" = "Сповіщення";
+"settings.warn_before_outage" = "Попереджати перед відключенням";
+"settings.warning_time" = "Час попередження";
+"settings.minutes %lld" = "%lld хв";
+"settings.back" = "Назад";
 "settings.language" = "Мова";
 "settings.language_system" = "Системна";
 "settings.language_en" = "English";
 "settings.language_uk" = "Українська";
+"settings.refresh_now" = "Оновити зараз";
 
 /* General */
 "about.general" = "Загальне";
 "about.launch_at_login" = "Запускати при вході";
 "about.quit" = "Вийти";
 
+/* Errors */
+"error.no_queue" = "Чергу не обрано. Оберіть чергу в Налаштуваннях.";
+"error.no_network" = "Немає з'єднання з мережею";
+
 /* Update */
 "update.available %@" = "Доступне оновлення: v%@";
 
 /* Retry */
 "retry.now" = "Повторити";
-
-/* Notifications — settings */
-"settings.notifications" = "Сповіщення";
-"settings.notifications_enabled" = "Сповіщення";
-"settings.warn_before_outage" = "Попереджати перед відключенням";
-"settings.warning_time" = "Час попередження";
-"settings.minutes %lld" = "%lld хв";
 
 /* Notifications — content */
 "notification.power_off_title" = "Світло вимкнено";
@@ -72,6 +74,14 @@
 "notification.warning_title" = "Наближається відключення";
 "notification.warning_body %@ %lld" = "Відключення о %1$@ — за ~%2$lld хв";
 
-/* Errors */
-"error.no_queue" = "Чергу не обрано. Оберіть чергу в Налаштуваннях.";
-"error.no_network" = "Немає з'єднання з мережею";
+/* Onboarding (iOS) */
+"onboarding.select_queue" = "Оберіть вашу чергу відключення, щоб почати";
+"onboarding.continue" = "Продовжити";
+
+/* Widget */
+"widget.name" = "Графік ВОЕ";
+"widget.description" = "Графік відключень електроенергії для Вінницької області";
+"widget.select_queue" = "Оберіть чергу";
+"widget.select_queue_description" = "Оберіть чергу відключення для відображення";
+"widget.no_queue" = "Оберіть чергу в додатку";
+"widget.fetch_error" = "Не вдалося завантажити графік";
