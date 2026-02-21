@@ -8,4 +8,5 @@ STRIP_INSTALLED_PRODUCT = YES
 ENABLE_NS_ASSERTIONS = NO
 DEAD_CODE_STRIPPING = YES
 DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
+CODE_SIGN_IDENTITY[sdk=iphoneos*] = Apple Distribution
 PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*] = match AppStore com.github.yefimtsev.VOEMonitor.iOS
