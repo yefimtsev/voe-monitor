@@ -1,0 +1,20 @@
+/* Status */
+"status.on" = "Power On";
+"status.off" = "Power Off";
+"status.partial" = "Partial";
+"status.unknown" = "Unknown";
+
+/* Schedule */
+"schedule.today" = "Today";
+"schedule.tomorrow" = "Tomorrow";
+
+/* Settings */
+"settings.queue" = "Queue";
+
+/* Widget */
+"widget.name" = "VOE Schedule";
+"widget.description" = "Power outage schedule for Vinnytsia region";
+"widget.select_queue" = "Select Queue";
+"widget.select_queue_description" = "Choose which disconnection queue to display";
+"widget.no_queue" = "Select queue in app";
+"widget.fetch_error" = "Could not load schedule";

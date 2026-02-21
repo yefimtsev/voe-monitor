@@ -1,0 +1,20 @@
+/* Status */
+"status.on" = "Світло є";
+"status.off" = "Світла немає";
+"status.partial" = "Часткове";
+"status.unknown" = "Невідомо";
+
+/* Schedule */
+"schedule.today" = "Сьогодні";
+"schedule.tomorrow" = "Завтра";
+
+/* Settings */
+"settings.queue" = "Черга";
+
+/* Widget */
+"widget.name" = "Графік ВОЕ";
+"widget.description" = "Графік відключень електроенергії для Вінницької області";
+"widget.select_queue" = "Оберіть чергу";
+"widget.select_queue_description" = "Оберіть чергу відключення для відображення";
+"widget.no_queue" = "Оберіть чергу в додатку";
+"widget.fetch_error" = "Не вдалося завантажити графік";
