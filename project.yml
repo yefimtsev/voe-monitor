@@ -4,6 +4,7 @@ options:
   xcodeVersion: "26.2"
   generateEmptyDirectories: true
   developmentLanguage: uk
+  defaultSourceDirectoryType: syncedFolder
 configs:
   Debug: debug
   Release: release
