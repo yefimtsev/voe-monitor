@@ -1,0 +1,31 @@
+name: Test
+
+# GitHub-hosted on purpose: the repo is public, and a pull request from a fork
+# must never run on the self-hosted runner.
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Unit tests
+        run: swift test
+
+      - name: Build macOS
+        run: |
+          xcodebuild build -project VOEMonitor.xcodeproj -scheme VOEMonitor \
+            -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO
+
+      - name: Build iOS and widget
+        run: |
+          xcodebuild build -project VOEMonitor.xcodeproj -scheme VOEMonitorIOS \
+            -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO
