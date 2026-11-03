@@ -40,3 +40,6 @@ Config/Local-iOS.xcconfig
 
 # Conductor
 conductor/
+
+# Generated session context
+_generated/
