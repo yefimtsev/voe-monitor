@@ -2,9 +2,8 @@ import SwiftUI
 
 /// Main panel shown when the menubar icon is clicked.
 struct MenuBarView: View {
-    private static let kyiv = ScheduleFetcher.kyivTimeZone
-
     var service: ScheduleService
+    @Environment(\.locale) private var locale
     @State private var showTomorrow = false
     @State private var showSettings = false
     @State private var settingsBounce = 0
@@ -35,15 +34,14 @@ struct MenuBarView: View {
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 12) {
-                Image(systemName: iconName)
+                Image(systemName: service.currentStatus.symbolName)
                     .contentTransition(.symbolEffect(.replace))
                     .symbolEffect(.pulse, options: .repeating, isActive: service.currentStatus == .off)
-                    .symbolEffect(.breathe, options: .repeating, isActive: service.currentStatus == .partial)
                     .font(.system(size: 28, weight: .medium))
-                    .foregroundStyle(statusColor)
+                    .foregroundStyle(service.currentStatus.color)
                     .frame(width: 36, height: 36)
 
-                Text(statusText)
+                Text(service.currentStatus.title)
                     .font(.system(size: 15, weight: .semibold))
 
                 Spacer(minLength: 8)
@@ -65,42 +63,13 @@ struct MenuBarView: View {
         }
     }
 
-    // MARK: - Status Helpers
-
-    private var statusText: String {
-        switch service.currentStatus {
-        case .on: String(localized: "status.on")
-        case .off: String(localized: "status.off")
-        case .partial: String(localized: "status.partial")
-        case .unknown: String(localized: "status.unknown")
-        }
-    }
-
-    private var iconName: String {
-        switch service.currentStatus {
-        case .on: "bolt.fill"
-        case .off: "bolt.slash.fill"
-        case .partial: "bolt.badge.clock.fill"
-        case .unknown: "questionmark.circle"
-        }
-    }
-
-    private var statusColor: Color {
-        switch service.currentStatus {
-        case .on: .green
-        case .off: .red
-        case .partial: .orange
-        case .unknown: .gray
-        }
-    }
-
     // MARK: - Schedule Grid
 
     private var scheduleSection: some View {
         VStack(spacing: 10) {
             if let today = service.todaySchedule {
                 dayCard(
-                    title: "\(String(localized: "schedule.today")) — \(today.dateString)",
+                    title: "\(String(localized: "schedule.today")) — \(today.dateString(locale: locale))",
                     schedule: today,
                     isToday: true
                 )
@@ -108,7 +77,7 @@ struct MenuBarView: View {
             if let tomorrow = service.tomorrowSchedule {
                 VStack(spacing: 0) {
                     HStack {
-                        Text("\(String(localized: "schedule.tomorrow")) — \(tomorrow.dateString)")
+                        Text("\(String(localized: "schedule.tomorrow")) — \(tomorrow.dateString(locale: locale))")
                             .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(.secondary)
                         Spacer()
@@ -181,11 +150,7 @@ struct MenuBarView: View {
     }
 
     private func hourGrid(slots: [HourSlot], highlightCurrent: Bool) -> some View {
-        let kyiv = Self.kyiv
-        var calendar = Calendar.current
-        calendar.timeZone = kyiv
-        let currentHour = calendar.component(.hour, from: Date())
-        let currentSlot = currentHour + 1
+        let currentSlot = KyivTime.slotID(at: Date())
         let use24h = service.config.use24HourTime
 
         let amSlots = Array(slots.prefix(12))
@@ -213,8 +178,7 @@ struct MenuBarView: View {
                             .font(.system(size: 8, weight: isCurrent ? .bold : .medium, design: .monospaced))
                             .foregroundStyle(isCurrent ? .primary : .secondary)
 
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(colorForSlot(slot))
+                        SlotFill(slot: slot, cornerRadius: 4)
                             .frame(height: 18)
                             .overlay {
                                 if isCurrent {
@@ -222,19 +186,12 @@ struct MenuBarView: View {
                                         .strokeBorder(.white, lineWidth: 2)
                                 }
                             }
-                            .shadow(color: isCurrent ? statusColor.opacity(0.4) : .clear, radius: 3)
+                            .shadow(color: isCurrent ? service.currentStatus.color.opacity(0.4) : .clear, radius: 3)
                     }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(slot.accessibilityText(use24h: use24h))
                 }
             }
-        }
-    }
-
-    private func colorForSlot(_ slot: HourSlot) -> Color {
-        switch slot.status {
-        case .on: .green.opacity(0.65)
-        case .off: .red.opacity(0.65)
-        case .partial: .orange.opacity(0.65)
-        case .unknown: .gray.opacity(0.2)
         }
     }
 

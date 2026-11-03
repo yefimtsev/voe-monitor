@@ -1,53 +1,76 @@
 import Foundation
-import SwiftUI
+import Observation
+import WidgetKit
 
-/// Simplified schedule service for iOS — uses ScheduleFetcher + SharedConfigManager.
+/// Schedule service for iOS. Keeps the whole response (all queues) and shares its cache with the widget.
+///
+/// Status is not stored: views derive it from ``timeline`` at the time they render.
 @MainActor
 @Observable
 final class IOSScheduleService {
-    var currentStatus: PowerStatus = .unknown
-    var todaySchedule: DaySchedule?
-    var tomorrowSchedule: DaySchedule?
-    var lastError: String?
-    var isLoading = false
-    var lastUpdated: Date?
+    private(set) var todaySchedule: DaySchedule?
+    private(set) var tomorrowSchedule: DaySchedule?
+    private(set) var timeline = OutageTimeline(days: [])
+    private(set) var lastError: String?
+    private(set) var isLoading = false
+    private(set) var lastUpdated: Date?
 
     var config: AppConfig {
         didSet {
             configManager.save(config)
-            if oldValue.selectedQueue != config.selectedQueue {
+            apply()
+            WidgetCenter.shared.reloadAllTimelines()
+            if response == nil, oldValue.selectedQueue != config.selectedQueue {
                 Task { await fetch() }
             }
+            Task { await NotificationScheduler.reschedule(timeline: timeline, config: config) }
         }
     }
+
+    /// Minimum interval between fetches triggered by returning to the app.
+    private static let staleness: TimeInterval = 120
 
     private let fetcher = ScheduleFetcher()
     private let configManager = SharedConfigManager()
+    private var response: ScheduleResponse?
+    private var lastFetchedAt: Date?
 
     init() {
-        config = SharedConfigManager().load()
+        config = configManager.load()
+        response = fetcher.cachedResponse()
+        apply()
         Task { await fetch() }
     }
 
-    func fetch() async {
-        guard !config.selectedQueue.isEmpty else {
-            lastError = String(localized: "error.no_queue")
-            return
-        }
+    func fetchIfStale() async {
+        if let lastFetchedAt, Date().timeIntervalSince(lastFetchedAt) < Self.staleness { return }
+        await fetch()
+    }
 
+    func fetch() async {
+        guard !isLoading else { return }
         isLoading = true
+        defer { isLoading = false }
         lastError = nil
+        lastFetchedAt = Date()
 
         do {
-            let result = try await fetcher.fetchSchedule(for: config.selectedQueue)
-            todaySchedule = result.todaySchedule
-            tomorrowSchedule = result.tomorrowSchedule
-            lastUpdated = result.lastUpdated
-            currentStatus = result.currentStatus
+            response = try await fetcher.fetchResponse()
+            apply()
+            WidgetCenter.shared.reloadAllTimelines()
+            await NotificationScheduler.reschedule(timeline: timeline, config: config)
         } catch {
             lastError = error.localizedDescription
         }
+    }
 
-        isLoading = false
+    /// Re-parse for the current queue and day.
+    func apply(now: Date = .now) {
+        guard let response else { return }
+        let result = fetcher.parse(response: response, queueId: config.selectedQueue, now: now)
+        todaySchedule = result.todaySchedule
+        tomorrowSchedule = result.tomorrowSchedule
+        lastUpdated = result.lastUpdated
+        timeline = result.timeline
     }
 }

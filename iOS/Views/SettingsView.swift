@@ -18,6 +18,18 @@ struct SettingsView: View {
 
             Section {
                 Toggle("settings.notifications_enabled", isOn: $service.config.notificationsEnabled)
+
+                if service.config.notificationsEnabled {
+                    Toggle("settings.warn_before_outage", isOn: $service.config.upcomingOutageWarning)
+
+                    if service.config.upcomingOutageWarning {
+                        Picker("settings.warning_time", selection: $service.config.warningMinutes) {
+                            Text("settings.minutes \(15)").tag(15)
+                            Text("settings.minutes \(30)").tag(30)
+                            Text("settings.minutes \(60)").tag(60)
+                        }
+                    }
+                }
             } header: {
                 Text("settings.notifications")
             }

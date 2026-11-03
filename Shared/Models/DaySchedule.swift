@@ -2,7 +2,7 @@ import Foundation
 
 /// A full day's disconnection schedule containing 24 hourly slots.
 public struct DaySchedule: Identifiable, Sendable {
-    /// Unix timestamp representing the start of the day (used as the API key).
+    /// Unix timestamp of the day's Kyiv midnight (the API key).
     public let id: Int
     public let date: Date
     public let slots: [HourSlot]
@@ -13,9 +13,11 @@ public struct DaySchedule: Identifiable, Sendable {
         self.slots = slots
     }
 
-    /// Formatted date string, e.g. `"11.02 (Wednesday)"`.
-    public var dateString: String {
+    /// Kyiv date with weekday in `locale`, e.g. `"03.11 (вівторок)"`.
+    public func dateString(locale: Locale) -> String {
         let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.timeZone = KyivTime.timeZone
         formatter.dateFormat = "dd.MM (EEEE)"
         return formatter.string(from: date)
     }

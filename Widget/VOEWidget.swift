@@ -6,31 +6,19 @@ struct VOEWidgetEntryView: View {
     let entry: VOETimelineEntry
 
     var body: some View {
-        if entry.isPlaceholder {
-            placeholderView
-                .redacted(reason: .placeholder)
-        } else {
+        Group {
             switch family {
             case .systemSmall:
                 VOEWidgetSmallView(entry: entry)
             case .systemMedium:
                 VOEWidgetMediumView(entry: entry)
-            default:
+            case .systemLarge:
                 VOEWidgetLargeView(entry: entry)
+            default:
+                VOEWidgetAccessoryView(entry: entry)
             }
         }
-    }
-
-    @ViewBuilder
-    private var placeholderView: some View {
-        switch family {
-        case .systemSmall:
-            VOEWidgetSmallView(entry: entry)
-        case .systemMedium:
-            VOEWidgetMediumView(entry: entry)
-        default:
-            VOEWidgetLargeView(entry: entry)
-        }
+        .redacted(reason: entry.isPlaceholder ? .placeholder : [])
     }
 }
 
@@ -48,6 +36,9 @@ struct VOEWidget: Widget {
         }
         .configurationDisplayName("widget.name")
         .description("widget.description")
-        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+        .supportedFamilies([
+            .systemSmall, .systemMedium, .systemLarge,
+            .accessoryCircular, .accessoryRectangular, .accessoryInline,
+        ])
     }
 }

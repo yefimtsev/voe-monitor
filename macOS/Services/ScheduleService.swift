@@ -1,70 +1,59 @@
 import Foundation
 import Network
-import SwiftUI
+import Observation
 
-/// Central data service that fetches, parses and exposes the disconnection schedule.
+/// Central data service: fetches the schedule, derives status and text, and schedules notifications.
 ///
-/// Refreshes automatically every 10 minutes on success, with exponential backoff on failure.
-/// Monitors network reachability and fetches immediately when connectivity is restored.
+/// Refreshes every 10 minutes on success, with backoff on failure, and right away when the network comes back.
+/// Keeps the whole response (all queues), so switching queue re-parses locally instead of refetching.
 @MainActor
 @Observable
 final class ScheduleService {
-    // MARK: - Published State
+    // MARK: - State for the UI
 
-    var currentStatus: PowerStatus = .unknown
-    var todaySchedule: DaySchedule?
-    var tomorrowSchedule: DaySchedule?
-    var lastError: String?
-    var isLoading = false
-    var nextOutageText = ""
-    var queue = ""
-    var lastUpdated: Date?
-    var fetchCount = 0
-    /// Semantic version string of the latest GitHub release when newer than the running app, otherwise `nil`.
-    var availableUpdate: String?
-    /// When set, a retry is scheduled for this date. Used by the UI to display a countdown.
-    var nextRetryAt: Date?
+    private(set) var currentStatus: PowerStatus = .unknown
+    private(set) var todaySchedule: DaySchedule?
+    private(set) var tomorrowSchedule: DaySchedule?
+    private(set) var nextOutageText = ""
+    private(set) var queue = ""
+    private(set) var lastUpdated: Date?
+    private(set) var lastError: String?
+    private(set) var isLoading = false
+    private(set) var fetchCount = 0
+    /// Version of the latest GitHub release when it is newer than the running app.
+    private(set) var availableUpdate: String?
+    /// When the next retry is due after a failed fetch. The UI shows a countdown.
+    private(set) var nextRetryAt: Date?
 
     var config: AppConfig {
         didSet {
             ConfigManager.shared.save(config)
-            if oldValue.selectedQueue != config.selectedQueue {
-                previousStatus = nil
-                lastWarnedSlot = nil
+            apply()
+            if response == nil, oldValue.selectedQueue != config.selectedQueue {
                 Task { await fetch() }
             }
-            if oldValue.use24HourTime != config.use24HourTime || oldValue.language != config.language {
-                rebuildLocalizedStrings()
-            }
-            if config.notificationsEnabled, !oldValue.notificationsEnabled {
-                Task { await NotificationManager.shared.requestPermission() }
-            }
+            Task { await rescheduleNotifications() }
         }
     }
 
     // MARK: - Private
 
-    /// Minimum interval between network fetches to avoid redundant requests.
+    /// Minimum interval between fetches triggered by opening the panel.
     private static let staleness: TimeInterval = 120
-    /// Normal refresh interval on success (10 minutes).
+    /// Refresh interval after a successful fetch.
     private static let normalInterval: TimeInterval = 600
-    /// Backoff intervals for consecutive failures.
+    /// Delays after 1, 2, 3… consecutive failures.
     private static let backoffIntervals: [TimeInterval] = [30, 60, 120, 300, 600]
-
-    private var refreshTimer: Timer?
-    private var retryCountdownTimer: Timer?
-    private var statusTimer: Timer?
-    private var lastFetchedAt: Date?
-    private var retryCount = 0
-    private let networkMonitor = NWPathMonitor()
-    private var hasNetwork = true
-    /// Previous power status for transition detection. `nil` on first load or after queue change.
-    private var previousStatus: PowerStatus?
-    /// Tracks the last slot we sent an upcoming outage warning for, to avoid duplicates.
-    private var lastWarnedSlot: Int?
 
     // swiftlint:disable:next force_unwrapping
     private static let releasesURL = URL(string: "https://api.github.com/repos/yefimtsev/voe-monitor/releases/latest")!
+
+    private let fetcher = ScheduleFetcher()
+    private var response: ScheduleResponse?
+    private var timeline = OutageTimeline(days: [])
+    private var lastFetchedAt: Date?
+    private var retryCount = 0
+    private var refreshTask: Task<Void, Never>?
 
     /// Current app version from `CFBundleShortVersionString`.
     static var appVersion: String {
@@ -75,318 +64,130 @@ final class ScheduleService {
 
     init() {
         config = ConfigManager.shared.load()
-        startNetworkMonitor()
-        startStatusTimer()
-        Task {
-            await fetch()
-            await checkForUpdate()
-        }
+        response = fetcher.cachedResponse()
+        apply()
+        startRefreshLoop()
+        Task { await watchNetwork() }
+        Task { await tickStatus() }
+        Task { await checkForUpdatesDaily() }
     }
 
     // MARK: - Fetching
 
     /// Fetch only if the last fetch was more than ``staleness`` seconds ago.
     func fetchIfStale() async {
-        // swiftlint:disable:next force_unwrapping
-        guard lastFetchedAt == nil || Date().timeIntervalSince(lastFetchedAt!) >= Self.staleness else { return }
-
+        if let lastFetchedAt, Date().timeIntervalSince(lastFetchedAt) < Self.staleness { return }
         await fetch()
     }
 
-    /// Fetch the latest schedule from GitHub and apply results.
+    /// Fetch the latest schedule from GitHub and apply it.
     func fetch() async {
+        guard !isLoading else { return }
         guard !config.selectedQueue.isEmpty else {
             lastError = String(localized: "error.no_queue")
             return
         }
 
         isLoading = true
+        defer { isLoading = false }
         lastError = nil
+        nextRetryAt = nil
         fetchCount += 1
         lastFetchedAt = Date()
 
         do {
-            let result = try await ScheduleFetcher().fetchSchedule(for: config.selectedQueue)
-            applyResult(result)
+            response = try await fetcher.fetchResponse()
             retryCount = 0
+            apply()
+            await rescheduleNotifications()
         } catch {
             lastError = error.localizedDescription
             retryCount += 1
         }
-
-        isLoading = false
-        scheduleNextFetch()
     }
 
-    /// Immediately retry, resetting the backoff counter.
+    /// Retry now and reset the backoff.
     func retryNow() {
+        guard !isLoading else { return }
         retryCount = 0
-        stopRetryCountdown()
-        Task { await fetch() }
+        startRefreshLoop()
     }
 
-    // MARK: - Dynamic Scheduling
-
-    private func scheduleNextFetch() {
-        refreshTimer?.invalidate()
-        stopRetryCountdown()
-
-        let interval: TimeInterval
-        if lastError != nil {
-            let index = min(retryCount - 1, Self.backoffIntervals.count - 1)
-            interval = Self.backoffIntervals[max(0, index)]
-            nextRetryAt = Date().addingTimeInterval(interval)
-            startRetryCountdown()
-        } else {
-            interval = Self.normalInterval
-            nextRetryAt = nil
-        }
-
-        refreshTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { [weak self] _ in
-            guard let self else { return }
-            Task { @MainActor in
-                await self.fetch()
+    /// Fetch, then sleep for the normal interval or the backoff delay, forever.
+    private func startRefreshLoop() {
+        refreshTask?.cancel()
+        refreshTask = Task {
+            while !Task.isCancelled {
+                await fetch()
+                let delay = retryCount == 0
+                    ? Self.normalInterval
+                    : Self.backoffIntervals[min(retryCount, Self.backoffIntervals.count) - 1]
+                nextRetryAt = retryCount == 0 ? nil : Date().addingTimeInterval(delay)
+                try? await Task.sleep(for: .seconds(delay))
             }
         }
     }
 
-    /// 1-second timer that keeps ``nextRetryAt`` ticking for UI countdown. Clears when retry fires.
-    private func startRetryCountdown() {
-        retryCountdownTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            Task { @MainActor in
-                if let target = self.nextRetryAt, Date() >= target {
-                    self.stopRetryCountdown()
-                }
+    private func watchNetwork() async {
+        var wasOnline = true
+        for await path in NWPathMonitor() {
+            let isOnline = path.status == .satisfied
+            if isOnline, !wasOnline {
+                retryNow()
+            } else if !isOnline {
+                lastError = String(localized: "error.no_network")
             }
+            wasOnline = isOnline
         }
     }
 
-    private func stopRetryCountdown() {
-        retryCountdownTimer?.invalidate()
-        retryCountdownTimer = nil
-        nextRetryAt = nil
+    // MARK: - Derived State
+
+    /// Recompute status and text for the current minute. Called by the panel on open.
+    func refreshCurrentStatus() {
+        apply()
     }
 
-    // MARK: - Network Monitoring
+    /// Re-parse for the current queue and moment. Cheap, so it also runs every minute and handles midnight.
+    private func apply(now: Date = .now) {
+        guard let response else { return }
+        let result = fetcher.parse(response: response, queueId: config.selectedQueue, now: now)
+        let locale = config.language.resolvedLocale
 
-    private func startNetworkMonitor() {
-        networkMonitor.pathUpdateHandler = { [weak self] path in
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                let wasOffline = !self.hasNetwork
-                self.hasNetwork = path.status == .satisfied
-
-                if self.hasNetwork, wasOffline {
-                    // Network restored — fetch immediately
-                    self.retryCount = 0
-                    await self.fetch()
-                } else if !self.hasNetwork {
-                    self.lastError = String(localized: "error.no_network")
-                }
-            }
-        }
-        networkMonitor.start(queue: DispatchQueue(label: "com.voemonitor.network"))
-    }
-
-    // MARK: - Locale
-
-    /// The locale to use for service-layer localized strings, respecting the in-app language override.
-    private var currentLocale: Locale {
-        config.language.resolvedLocale
-    }
-
-    /// Rebuild all localized text properties (queue label, outage text) after a language or format change.
-    private func rebuildLocalizedStrings() {
-        if !config.selectedQueue.isEmpty {
-            queue = String(localized: "settings.queue", locale: currentLocale) + " \(config.selectedQueue)"
-        }
-        updateNextOutageText()
-    }
-
-    // MARK: - Applying Results
-
-    /// Apply a fetch result and update today/tomorrow schedules.
-    private func applyResult(_ result: ScheduleFetcher.FetchResult) {
         todaySchedule = result.todaySchedule
         tomorrowSchedule = result.tomorrowSchedule
         lastUpdated = result.lastUpdated
-
-        queue = String(localized: "settings.queue", locale: currentLocale) + " \(config.selectedQueue)"
-
-        updateCurrentStatus()
-        updateNextOutageText()
+        timeline = result.timeline
+        currentStatus = timeline.status(at: now)
+        nextOutageText = ScheduleText.nextEvent(timeline: timeline, now: now, use24h: config.use24HourTime, locale: locale)
+        queue = config.selectedQueue.isEmpty
+            ? ""
+            : String(localized: "settings.queue", locale: locale) + " \(config.selectedQueue)"
     }
 
-    // MARK: - Status
-
-    /// Recalculate ``currentStatus`` and ``nextOutageText`` from cached schedule data.
-    func refreshCurrentStatus() {
-        updateCurrentStatus()
-        updateNextOutageText()
-    }
-
-    private func updateCurrentStatus() {
-        let newStatus = ScheduleFetcher.currentStatus(from: todaySchedule, at: Date())
-
-        let slotIndex: Int = {
-            var calendar = Calendar.current
-            calendar.timeZone = ScheduleFetcher.kyivTimeZone
-            return calendar.component(.hour, from: Date()) + 1
-        }()
-
-        // Detect meaningful transitions and fire notifications
-        if config.notificationsEnabled,
-           let previous = previousStatus,
-           previous != newStatus,
-           previous != .unknown,
-           newStatus != .unknown {
-            let nextTime = nextEventTimeString(for: newStatus, after: slotIndex, use24h: config.use24HourTime)
-            NotificationManager.shared.sendStatusChange(from: previous, to: newStatus, nextEventTime: nextTime)
-        }
-
-        previousStatus = newStatus
-        currentStatus = newStatus
-    }
-
-    /// Find the time string for the next relevant event after the given slot.
-    private func nextEventTimeString(for status: PowerStatus, after slotIndex: Int, use24h: Bool) -> String? {
-        guard let schedule = todaySchedule else { return nil }
-        let targetStatuses: Set<PowerStatus> = status == .off ? [.on] : [.off, .partial]
-        if let next = schedule.slots.first(where: { $0.id > slotIndex && targetStatuses.contains($0.status) }) {
-            return HourSlot.formatTime(slotId: next.id, use24h: use24h)
-        }
-        if let tomorrow = tomorrowSchedule,
-           let first = tomorrow.slots.first(where: { targetStatuses.contains($0.status) }) {
-            return HourSlot.formatTime(slotId: first.id, use24h: use24h)
-        }
-        return nil
-    }
-
-    // MARK: - Status Timer
-
-    /// 60-second timer that catches hour-boundary status changes between fetches.
-    private func startStatusTimer() {
-        statusTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            Task { @MainActor in
-                self.refreshCurrentStatus()
-                self.checkUpcomingOutageWarning()
-            }
+    private func tickStatus() async {
+        while !Task.isCancelled {
+            try? await Task.sleep(for: .seconds(60))
+            apply()
         }
     }
 
-    /// Check if an outage is approaching and fire a warning notification if needed.
-    private func checkUpcomingOutageWarning() {
-        guard config.notificationsEnabled,
-              config.upcomingOutageWarning,
-              currentStatus == .on || currentStatus == .partial,
-              let schedule = todaySchedule else { return }
-
-        var calendar = Calendar.current
-        calendar.timeZone = ScheduleFetcher.kyivTimeZone
-        let now = Date()
-        let currentHour = calendar.component(.hour, from: now)
-        let currentMinute = calendar.component(.minute, from: now)
-        let currentSlot = currentHour + 1
-
-        // Find next off/partial slot
-        guard let nextOff = schedule.slots.first(where: { $0.id > currentSlot && ($0.status == .off || $0.status == .partial) }) else {
-            return
-        }
-
-        // Already warned for this slot
-        if lastWarnedSlot == nextOff.id { return }
-
-        // Calculate minutes until the outage slot starts
-        let outageHour = nextOff.id - 1
-        let minutesUntil = (outageHour - currentHour) * 60 - currentMinute
-
-        if minutesUntil > 0, minutesUntil <= config.warningMinutes {
-            let time = HourSlot.formatTime(slotId: nextOff.id, use24h: config.use24HourTime)
-            NotificationManager.shared.sendUpcomingWarning(outageTime: time, minutesUntil: minutesUntil)
-            lastWarnedSlot = nextOff.id
-        }
-    }
-
-    private func updateNextOutageText() {
-        guard let schedule = todaySchedule else {
-            nextOutageText = ""
-            return
-        }
-
-        var calendar = Calendar.current
-        calendar.timeZone = ScheduleFetcher.kyivTimeZone
-        let currentHour = calendar.component(.hour, from: Date())
-        let currentSlot = currentHour + 1
-        let use24h = config.use24HourTime
-        let locale = currentLocale
-
-        switch currentStatus {
-        case .off:
-            if let nextOn = schedule.slots.first(where: { $0.id > currentSlot && $0.status == .on }) {
-                let time = HourSlot.formatTime(slotId: nextOn.id, use24h: use24h)
-                let countdown = countdownText(from: currentHour, toSlotId: nextOn.id, isTomorrow: false)
-                nextOutageText = String(localized: "next.power_at \(time) \(countdown)", locale: locale)
-            } else if let tomorrow = tomorrowSchedule,
-                      let firstOn = tomorrow.slots.first(where: { $0.status == .on }) {
-                let time = HourSlot.formatTime(slotId: firstOn.id, use24h: use24h)
-                let countdown = countdownText(from: currentHour, toSlotId: firstOn.id, isTomorrow: true)
-                nextOutageText = String(localized: "next.power_tomorrow_at \(time) \(countdown)", locale: locale)
-            } else {
-                nextOutageText = ""
-            }
-
-        case .on, .partial:
-            if let nextOff = schedule.slots.first(where: { $0.id > currentSlot && ($0.status == .off || $0.status == .partial) }) {
-                let time = HourSlot.formatTime(slotId: nextOff.id, use24h: use24h)
-                let countdown = countdownText(from: currentHour, toSlotId: nextOff.id, isTomorrow: false)
-                nextOutageText = String(localized: "next.outage_at \(time) \(countdown)", locale: locale)
-            } else if let tomorrow = tomorrowSchedule,
-                      let firstOff = tomorrow.slots.first(where: { $0.status == .off || $0.status == .partial }) {
-                let time = HourSlot.formatTime(slotId: firstOff.id, use24h: use24h)
-                let countdown = countdownText(from: currentHour, toSlotId: firstOff.id, isTomorrow: true)
-                nextOutageText = String(localized: "next.outage_tomorrow_at \(time) \(countdown)", locale: locale)
-            } else {
-                nextOutageText = String(localized: "next.no_outages", locale: locale)
-            }
-
-        case .unknown:
-            nextOutageText = ""
-        }
-    }
-
-    /// Build a countdown string like `"~2h 35m"` or `"< 1m"`.
-    private func countdownText(from currentHour: Int, toSlotId: Int, isTomorrow: Bool) -> String {
-        var calendar = Calendar.current
-        calendar.timeZone = ScheduleFetcher.kyivTimeZone
-        let currentMinute = calendar.component(.minute, from: Date())
-
-        let targetHour = toSlotId - 1
-        let totalMinutes: Int
-        if isTomorrow {
-            totalMinutes = ((24 - currentHour) + targetHour) * 60 - currentMinute
-        } else {
-            totalMinutes = (targetHour - currentHour) * 60 - currentMinute
-        }
-
-        let locale = currentLocale
-        let hours = totalMinutes / 60
-        let minutes = totalMinutes % 60
-
-        if totalMinutes < 1 {
-            return String(localized: "countdown.less_than_minute", locale: locale)
-        }
-        if hours == 0 {
-            return String(localized: "countdown.minutes \(minutes)", locale: locale)
-        }
-        return String(localized: "countdown.hours_minutes \(hours) \(minutes)", locale: locale)
+    private func rescheduleNotifications() async {
+        await NotificationScheduler.reschedule(timeline: timeline, config: config)
     }
 
     // MARK: - Update Check
 
-    /// Query GitHub Releases API and set ``availableUpdate`` if a newer version exists.
-    func checkForUpdate() async {
+    /// A menubar app runs for weeks, so check once a day, not only at launch.
+    private func checkForUpdatesDaily() async {
+        while !Task.isCancelled {
+            await checkForUpdate()
+            try? await Task.sleep(for: .seconds(86_400))
+        }
+    }
+
+    /// Query GitHub Releases and set ``availableUpdate`` if a newer version exists.
+    private func checkForUpdate() async {
         do {
             var request = URLRequest(url: Self.releasesURL)
             request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
@@ -397,7 +198,7 @@ final class ScheduleService {
                 availableUpdate = remote
             }
         } catch {
-            // Silent fail — update check is non-critical
+            // Silent: the update check is not critical.
         }
     }
 }

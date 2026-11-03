@@ -3,6 +3,8 @@ import SwiftUI
 struct ContentView: View {
     @Bindable var service: IOSScheduleService
     @State private var showOnboarding: Bool
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
 
     init(service: IOSScheduleService) {
         self.service = service
@@ -11,12 +13,17 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    statusHeader
-                    scheduleSection
+            TimelineView(.everyMinute) { context in
+                ScrollView {
+                    VStack(spacing: 16) {
+                        statusHeader(now: context.date)
+                        scheduleSection(now: context.date)
+                    }
+                    .padding()
                 }
-                .padding()
+                .onChange(of: context.date) { _, now in
+                    service.apply(now: now)
+                }
             }
             .refreshable {
                 await service.fetch()
@@ -37,19 +44,32 @@ struct ContentView: View {
             OnboardingView(service: service, isPresented: $showOnboarding)
                 .interactiveDismissDisabled()
         }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            service.apply()
+            Task { await service.fetchIfStale() }
+        }
     }
 
     // MARK: - Status Header
 
-    private var statusHeader: some View {
-        HStack(spacing: 12) {
-            Image(systemName: iconName)
+    private func statusHeader(now: Date) -> some View {
+        let status = service.timeline.status(at: now)
+        let nextEvent = ScheduleText.nextEvent(
+            timeline: service.timeline,
+            now: now,
+            use24h: service.config.use24HourTime,
+            locale: locale
+        )
+
+        return HStack(spacing: 12) {
+            Image(systemName: status.symbolName)
                 .font(.system(size: 32, weight: .medium))
-                .foregroundStyle(statusColor)
-                .symbolEffect(.pulse, options: .repeating, isActive: service.currentStatus == .off)
+                .foregroundStyle(status.color)
+                .symbolEffect(.pulse, options: .repeating, isActive: status == .off)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(statusText)
+                Text(status.title)
                     .font(.headline)
 
                 if !service.config.selectedQueue.isEmpty {
@@ -57,61 +77,42 @@ struct ContentView: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
+
+                if !nextEvent.isEmpty {
+                    Text(nextEvent)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Spacer()
         }
         .padding()
-        .background(.regularMaterial, in: .rect(cornerRadius: 12))
+        .cardBackground()
         .accessibilityElement(children: .combine)
-    }
-
-    private var statusText: String {
-        switch service.currentStatus {
-        case .on: String(localized: "status.on")
-        case .off: String(localized: "status.off")
-        case .partial: String(localized: "status.partial")
-        case .unknown: String(localized: "status.unknown")
-        }
-    }
-
-    private var iconName: String {
-        switch service.currentStatus {
-        case .on: "bolt.fill"
-        case .off: "bolt.slash.fill"
-        case .partial: "bolt.badge.clock.fill"
-        case .unknown: "questionmark.circle"
-        }
-    }
-
-    private var statusColor: Color {
-        switch service.currentStatus {
-        case .on: .green
-        case .off: .red
-        case .partial: .orange
-        case .unknown: .gray
-        }
     }
 
     // MARK: - Schedule
 
-    private var scheduleSection: some View {
+    private func scheduleSection(now: Date) -> some View {
         VStack(spacing: 12) {
             if let today = service.todaySchedule {
                 ScheduleGridView(
-                    title: String(localized: "schedule.today") + " — " + today.dateString,
+                    title: String(localized: "schedule.today") + " — " + today.dateString(locale: locale),
                     schedule: today,
                     isToday: true,
-                    use24h: service.config.use24HourTime
+                    use24h: service.config.use24HourTime,
+                    now: now
                 )
             }
 
             if let tomorrow = service.tomorrowSchedule {
                 ScheduleGridView(
-                    title: String(localized: "schedule.tomorrow") + " — " + tomorrow.dateString,
+                    title: String(localized: "schedule.tomorrow") + " — " + tomorrow.dateString(locale: locale),
                     schedule: tomorrow,
                     isToday: false,
-                    use24h: service.config.use24HourTime
+                    use24h: service.config.use24HourTime,
+                    now: now
                 )
             }
 

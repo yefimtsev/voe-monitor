@@ -13,25 +13,10 @@ struct VOEMonitorApp: App {
             Label {
                 Text("VOE Monitor")
             } icon: {
-                Image(systemName: menuBarIconName)
+                Image(systemName: scheduleService.currentStatus.symbolName)
                     .symbolRenderingMode(.palette)
             }
         }
         .menuBarExtraStyle(.window)
-    }
-
-    // MARK: - Menubar Icon
-
-    private var menuBarIconName: String {
-        switch scheduleService.currentStatus {
-        case .on:
-            "bolt.fill"
-        case .off:
-            "bolt.slash.fill"
-        case .partial:
-            "bolt.badge.clock.fill"
-        case .unknown:
-            "bolt.trianglebadge.exclamationmark.fill"
-        }
     }
 }
