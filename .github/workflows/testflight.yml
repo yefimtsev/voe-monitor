@@ -48,8 +48,7 @@ jobs:
           ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
         run: |
           KEY="$RUNNER_TEMP/AuthKey_$ASC_KEY_ID.p8"
-          echo "$ASC_KEY_CONTENT" | base64 --decode > "$KEY"
-          chmod 600 "$KEY"
+          .github/scripts/write-asc-key.sh "$KEY"
           echo "ASC_PRIVATE_KEY_PATH=$KEY" >> "$GITHUB_ENV"
 
       - name: Resolve version and build number

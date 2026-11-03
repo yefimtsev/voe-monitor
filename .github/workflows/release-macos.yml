@@ -107,7 +107,7 @@ jobs:
           ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
         run: |
           KEY="$RUNNER_TEMP/AuthKey_$ASC_KEY_ID.p8"
-          echo "$ASC_KEY_CONTENT" | base64 --decode > "$KEY"
+          .github/scripts/write-asc-key.sh "$KEY"
           AUTH=(--key "$KEY" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID")
 
           RESULT=$(xcrun notarytool submit build/VOEMonitor.dmg "${AUTH[@]}" --wait --output-format json) || true
