@@ -25,7 +25,10 @@ jobs:
       ASC_APP_ID: ${{ vars.ASC_APP_ID }}
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      # asc decodes the key itself. The file written below is only for xcodebuild.
+      ASC_PRIVATE_KEY_B64: ${{ secrets.ASC_KEY_CONTENT }}
       ASC_BYPASS_KEYCHAIN: "1"
+      ASC_NO_UPDATE: "1"
 
     steps:
       - uses: actions/checkout@v5
@@ -43,13 +46,14 @@ jobs:
           fi
           xcodebuild -version
 
-      - name: Write API key
+      # Not named ASC_PRIVATE_KEY_PATH, so asc sees one key source, not two.
+      - name: Write API key for xcodebuild
         env:
           ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
         run: |
           KEY="$RUNNER_TEMP/AuthKey_$ASC_KEY_ID.p8"
           .github/scripts/write-asc-key.sh "$KEY"
-          echo "ASC_PRIVATE_KEY_PATH=$KEY" >> "$GITHUB_ENV"
+          echo "XCODE_AUTH_KEY_PATH=$KEY" >> "$GITHUB_ENV"
 
       - name: Resolve version and build number
         run: |
@@ -70,7 +74,7 @@ jobs:
             -destination generic/platform=iOS \
             -archivePath build/VOEMonitorIOS.xcarchive \
             -allowProvisioningUpdates \
-            -authenticationKeyPath "$ASC_PRIVATE_KEY_PATH" \
+            -authenticationKeyPath "$XCODE_AUTH_KEY_PATH" \
             -authenticationKeyID "$ASC_KEY_ID" \
             -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
             MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD"
@@ -82,7 +86,7 @@ jobs:
             -exportOptionsPlist Config/ExportOptions-iOS.plist \
             -exportPath build/ipa \
             -allowProvisioningUpdates \
-            -authenticationKeyPath "$ASC_PRIVATE_KEY_PATH" \
+            -authenticationKeyPath "$XCODE_AUTH_KEY_PATH" \
             -authenticationKeyID "$ASC_KEY_ID" \
             -authenticationKeyIssuerID "$ASC_ISSUER_ID"
 
