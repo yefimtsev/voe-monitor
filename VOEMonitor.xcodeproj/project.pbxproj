@@ -286,7 +286,6 @@
 			baseConfigurationReference = 4BE735C73A804E411E7B4BDC /* Debug-Widget.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Widget/VOEWidget.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Widget/Info.plist;
 				SDKROOT = iphoneos;
@@ -299,7 +298,6 @@
 			baseConfigurationReference = 579BEECE8C9BAC2E27D549DF /* Release-Widget.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Widget/VOEWidget.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Distribution";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Widget/Info.plist;
 				SDKROOT = iphoneos;
@@ -371,7 +369,6 @@
 			baseConfigurationReference = 30C17486BFE8C36A2F7875A2 /* Debug-iOS.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = iOS/VOEMonitorIOS.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
 				INFOPLIST_FILE = iOS/Info.plist;
 				SDKROOT = iphoneos;
 			};
@@ -468,7 +465,6 @@
 			baseConfigurationReference = 855B5DEC2331ACD10116C320 /* Release-iOS.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = iOS/VOEMonitorIOS.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Distribution";
 				INFOPLIST_FILE = iOS/Info.plist;
 				SDKROOT = iphoneos;
 			};

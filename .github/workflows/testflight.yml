@@ -1,44 +1,107 @@
 name: TestFlight
 
+# Tag convention:
+#   v1.0.0      → macOS release (release-macos.yml)
+#   mac-v1.0.0  → macOS release (release-macos.yml)
+#   beta/1.0.0  → iOS TestFlight (this workflow)
+
 on:
   push:
     tags:
       - 'beta/*'
 
-# Only one TestFlight upload at a time — don't cancel in-progress builds
+# One upload at a time; never cancel one halfway.
 concurrency:
   group: testflight
   cancel-in-progress: false
-
-# Tag convention:
-#   v1.0.0      → triggers macOS release (release-macos.yml)
-#   mac-v1.0.0  → triggers macOS release (release-macos.yml)
-#   beta/1.0.0  → triggers iOS TestFlight (this workflow)
 
 jobs:
   deploy:
     name: Deploy to TestFlight
     runs-on: [self-hosted, macOS]
+    env:
+      # The runner must have exactly this asc version installed (brew install asc).
+      ASC_VERSION: "5.17.1"
+      ASC_APP_ID: ${{ vars.ASC_APP_ID }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_BYPASS_KEYCHAIN: "1"
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v5
 
-      - name: Install Ruby dependencies
-        run: bundle install
+      - name: Check tools
+        run: |
+          installed=$(asc --version | awk '{print $1}')
+          if [ "$installed" != "$ASC_VERSION" ]; then
+            echo "::error::asc $installed is installed, this workflow is pinned to $ASC_VERSION"
+            exit 1
+          fi
+          if [ -z "$ASC_APP_ID" ]; then
+            echo "::error::Set the ASC_APP_ID repository variable (asc apps list)"
+            exit 1
+          fi
+          xcodebuild -version
 
-      - name: Deploy to TestFlight
+      - name: Write API key
         env:
-          GIT_TAG: ${{ github.ref_name }}
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-        run: bundle exec fastlane beta
+        run: |
+          KEY="$RUNNER_TEMP/AuthKey_$ASC_KEY_ID.p8"
+          echo "$ASC_KEY_CONTENT" | base64 --decode > "$KEY"
+          chmod 600 "$KEY"
+          echo "ASC_PRIVATE_KEY_PATH=$KEY" >> "$GITHUB_ENV"
 
-# Required GitHub Secrets:
-#   ASC_KEY_ID      — App Store Connect API key ID (App Manager role, not Admin)
-#   ASC_ISSUER_ID   — App Store Connect API issuer ID
-#   ASC_KEY_CONTENT  — Base64-encoded .p8 key file content
-#   MATCH_PASSWORD   — Passphrase for Match certificates repo encryption
+      - name: Resolve version and build number
+        run: |
+          VERSION="${GITHUB_REF_NAME#beta/}"
+          # Not filtered by version: build numbers keep growing across versions, as they did with fastlane.
+          BUILD=$(asc builds next-build-number --app "$ASC_APP_ID" --platform IOS --output json | jq -er '.nextBuildNumber')
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "BUILD=$BUILD" >> "$GITHUB_ENV"
+          echo "Deploying $GITHUB_REF_NAME as $VERSION ($BUILD)"
+
+      # Automatic signing with the API key: Xcode fetches cloud-managed certificates and profiles itself.
+      # The key needs a role that may use cloud-managed distribution certificates (Admin, or App Manager
+      # with that permission granted in App Store Connect).
+      - name: Archive
+        run: |
+          xcodebuild archive \
+            -project VOEMonitor.xcodeproj -scheme VOEMonitorIOS -configuration Release \
+            -destination generic/platform=iOS \
+            -archivePath build/VOEMonitorIOS.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_PRIVATE_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD"
+
+      - name: Export IPA
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/VOEMonitorIOS.xcarchive \
+            -exportOptionsPlist Config/ExportOptions-iOS.plist \
+            -exportPath build/ipa \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_PRIVATE_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+
+      - name: Upload to TestFlight
+        run: |
+          IPAS=(build/ipa/*.ipa)
+          if [ ${#IPAS[@]} -ne 1 ] || [ ! -f "${IPAS[0]}" ]; then
+            echo "::error::Expected exactly one IPA in build/ipa, found: ${IPAS[*]}"
+            exit 1
+          fi
+          asc publish testflight --app "$ASC_APP_ID" --ipa "${IPAS[0]}" --upload-only --output json
+
+      - name: Clean up
+        if: always()
+        run: rm -rf "$RUNNER_TEMP"/AuthKey_*.p8 build
+
+# Required:
+#   secrets.ASC_KEY_ID       App Store Connect API key ID
+#   secrets.ASC_ISSUER_ID    App Store Connect API issuer ID
+#   secrets.ASC_KEY_CONTENT  Base64 of the .p8 key file
+#   vars.ASC_APP_ID          App Store Connect app ID of the iOS app
