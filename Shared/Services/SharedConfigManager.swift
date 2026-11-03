@@ -8,13 +8,13 @@ public final class SharedConfigManager: Sendable {
 
     private static let configKey = "appConfig"
 
-    private nonisolated(unsafe) let defaults: UserDefaults
-
-    /// Initialize with the App Group UserDefaults suite.
-    /// Falls back to `.standard` if the suite is unavailable (e.g. in previews).
-    public init() {
-        defaults = UserDefaults(suiteName: Self.appGroupID) ?? .standard
+    /// The App Group suite, or `.standard` if it is unavailable (e.g. in previews).
+    /// Looked up per call rather than stored: `UserDefaults` is not `Sendable`, this class is.
+    private var defaults: UserDefaults {
+        UserDefaults(suiteName: Self.appGroupID) ?? .standard
     }
+
+    public init() {}
 
     /// Load config from App Group UserDefaults, falling back to ``AppConfig/default``.
     public func load() -> AppConfig {

@@ -1,8 +1,8 @@
 import AppIntents
 
 struct QueueEntity: AppEntity {
-    nonisolated(unsafe) static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Queue")
-    nonisolated(unsafe) static var defaultQuery = QueueEntityQuery()
+    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Queue")
+    static let defaultQuery = QueueEntityQuery()
 
     var id: String
     var displayName: String
@@ -39,8 +39,8 @@ struct QueueEntityQuery: EntityQuery {
 }
 
 struct SelectQueueIntent: WidgetConfigurationIntent {
-    nonisolated(unsafe) static var title: LocalizedStringResource = "widget.select_queue"
-    nonisolated(unsafe) static var description: IntentDescription = "widget.select_queue_description"
+    static let title: LocalizedStringResource = "widget.select_queue"
+    static let description: IntentDescription = "widget.select_queue_description"
 
     @Parameter(title: "settings.queue")
     var queue: QueueEntity?
