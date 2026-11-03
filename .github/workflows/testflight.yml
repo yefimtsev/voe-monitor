@@ -4,6 +4,10 @@ name: TestFlight
 #   v1.0.0      → macOS release (release-macos.yml)
 #   mac-v1.0.0  → macOS release (release-macos.yml)
 #   beta/1.0.0  → iOS TestFlight (this workflow)
+#
+# Signing: the team's Apple Distribution .p12 goes into a temporary keychain, and asc
+# fetches (or creates) the App Store profiles. Automatic signing doesn't work
+# on this runner: it has no GUI session, so codesign can't use keys in the login keychain.
 
 on:
   push:
@@ -25,10 +29,11 @@ jobs:
       ASC_APP_ID: ${{ vars.ASC_APP_ID }}
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-      # asc decodes the key itself. The file written below is only for xcodebuild.
       ASC_PRIVATE_KEY_B64: ${{ secrets.ASC_KEY_CONTENT }}
       ASC_BYPASS_KEYCHAIN: "1"
       ASC_NO_UPDATE: "1"
+      APP_BUNDLE_ID: com.github.yefimtsev.VOEMonitor.iOS
+      SIGNING_DIR: build/signing
 
     steps:
       - uses: actions/checkout@v5
@@ -46,14 +51,33 @@ jobs:
           fi
           xcodebuild -version
 
-      # Not named ASC_PRIVATE_KEY_PATH, so asc sees one key source, not two.
-      - name: Write API key for xcodebuild
+      - name: Prepare signing keychain
         env:
-          ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
+          IOS_DIST_P12_B64: ${{ secrets.IOS_DIST_P12_B64 }}
+          IOS_DIST_P12_PASSWORD: ${{ secrets.IOS_DIST_P12_PASSWORD }}
         run: |
-          KEY="$RUNNER_TEMP/AuthKey_$ASC_KEY_ID.p8"
-          .github/scripts/write-asc-key.sh "$KEY"
-          echo "XCODE_AUTH_KEY_PATH=$KEY" >> "$GITHUB_ENV"
+          RUN_KEY="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          KEYCHAIN_PATH="$RUNNER_TEMP/voe-$RUN_KEY.keychain-db"
+          P12_PATH="$RUNNER_TEMP/voe-$RUN_KEY.p12"
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 24 | tr -d '\n')
+
+          printf '%s' "$IOS_DIST_P12_B64" | tr -d ' \r\n' | base64 --decode > "$P12_PATH"
+          security list-keychains -d user | tr -d '"' | xargs > "$RUNNER_TEMP/voe-$RUN_KEY-keychains.txt"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$P12_PATH" -k "$KEYCHAIN_PATH" -P "$IOS_DIST_P12_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/xcodebuild
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" > /dev/null
+          security list-keychains -d user -s "$KEYCHAIN_PATH" "$HOME/Library/Keychains/login.keychain-db"
+          rm -f "$P12_PATH"
+
+          if ! security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep -q "Apple Distribution"; then
+            echo "::error::IOS_DIST_P12_B64 has no Apple Distribution identity"
+            exit 1
+          fi
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+          echo "ORIGINAL_KEYCHAINS_FILE=$RUNNER_TEMP/voe-$RUN_KEY-keychains.txt" >> "$GITHUB_ENV"
 
       - name: Resolve version and build number
         run: |
@@ -64,31 +88,36 @@ jobs:
           echo "BUILD=$BUILD" >> "$GITHUB_ENV"
           echo "Deploying $GITHUB_REF_NAME as $VERSION ($BUILD)"
 
-      # Automatic signing with the API key: Xcode fetches cloud-managed certificates and profiles itself.
-      # The key needs a role that may use cloud-managed distribution certificates (Admin, or App Manager
-      # with that permission granted in App Store Connect).
+      # --match-extensions also covers the widget; --create-missing makes the profiles the first time.
+      - name: Fetch and install provisioning profiles
+        run: |
+          mkdir -p "$SIGNING_DIR"
+          asc signing fetch --app "$ASC_APP_ID" --bundle-id "$APP_BUNDLE_ID" \
+            --certificate-type DISTRIBUTION --profile-type IOS_APP_STORE \
+            --match-extensions --create-missing \
+            --output "$SIGNING_DIR" --format json > "$SIGNING_DIR/fetch.json"
+          .github/scripts/install-profiles.sh "$SIGNING_DIR" "$SIGNING_DIR/ExportOptions.plist"
+
       - name: Archive
         run: |
           xcodebuild archive \
             -project VOEMonitor.xcodeproj -scheme VOEMonitorIOS -configuration Release \
             -destination generic/platform=iOS \
             -archivePath build/VOEMonitorIOS.xcarchive \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$XCODE_AUTH_KEY_PATH" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            DEVELOPMENT_TEAM=SUM249566D \
+            VOE_APP_PROFILE="$VOE_APP_PROFILE" \
+            VOE_WIDGET_PROFILE="$VOE_WIDGET_PROFILE" \
+            OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH" \
             MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD"
 
       - name: Export IPA
         run: |
           xcodebuild -exportArchive \
             -archivePath build/VOEMonitorIOS.xcarchive \
-            -exportOptionsPlist Config/ExportOptions-iOS.plist \
-            -exportPath build/ipa \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$XCODE_AUTH_KEY_PATH" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+            -exportOptionsPlist "$SIGNING_DIR/ExportOptions.plist" \
+            -exportPath build/ipa
 
       - name: Upload to TestFlight
         run: |
@@ -101,10 +130,21 @@ jobs:
 
       - name: Clean up
         if: always()
-        run: rm -rf "$RUNNER_TEMP"/AuthKey_*.p8 build
+        run: |
+          if [ -n "${ORIGINAL_KEYCHAINS_FILE:-}" ] && [ -f "$ORIGINAL_KEYCHAINS_FILE" ]; then
+            # shellcheck disable=SC2046
+            security list-keychains -d user -s $(cat "$ORIGINAL_KEYCHAINS_FILE")
+            rm -f "$ORIGINAL_KEYCHAINS_FILE"
+          fi
+          if [ -n "${KEYCHAIN_PATH:-}" ]; then
+            security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || rm -f "$KEYCHAIN_PATH"
+          fi
+          rm -f "$RUNNER_TEMP"/voe-*.p12
+          rm -rf build
 
 # Required:
-#   secrets.ASC_KEY_ID       App Store Connect API key ID
-#   secrets.ASC_ISSUER_ID    App Store Connect API issuer ID
-#   secrets.ASC_KEY_CONTENT  Base64 of the .p8 key file
-#   vars.ASC_APP_ID          App Store Connect app ID of the iOS app
+#   secrets.ASC_KEY_ID, secrets.ASC_ISSUER_ID   App Store Connect API key
+#   secrets.ASC_KEY_CONTENT                     Base64 of the .p8 key file
+#   secrets.IOS_DIST_P12_B64                    Base64 of the team's Apple Distribution .p12
+#   secrets.IOS_DIST_P12_PASSWORD               Password of that .p12
+#   vars.ASC_APP_ID                             App Store Connect app ID of the iOS app

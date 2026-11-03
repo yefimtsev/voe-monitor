@@ -8,3 +8,6 @@ STRIP_INSTALLED_PRODUCT = YES
 ENABLE_NS_ASSERTIONS = NO
 DEAD_CODE_STRIPPING = YES
 DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
+
+// CI sets these for manual App Store signing; empty locally, so Xcode signs automatically.
+PROVISIONING_PROFILE_SPECIFIER = $(VOE_APP_PROFILE)
