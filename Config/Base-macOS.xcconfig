@@ -1,7 +1,7 @@
 // Base macOS configuration
 #include "Base.xcconfig"
 
-MACOSX_DEPLOYMENT_TARGET = 15.0
+MACOSX_DEPLOYMENT_TARGET = 26.0
 PRODUCT_BUNDLE_IDENTIFIER = com.github.yefimtsev.VOEMonitor
 PRODUCT_NAME = VOE Monitor
 INFOPLIST_FILE = macOS/Info.plist

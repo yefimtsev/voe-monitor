@@ -1,7 +1,7 @@
 // Base Widget configuration
 #include "Base.xcconfig"
 
-IPHONEOS_DEPLOYMENT_TARGET = 17.0
+IPHONEOS_DEPLOYMENT_TARGET = 18.0
 PRODUCT_BUNDLE_IDENTIFIER = com.github.yefimtsev.VOEMonitor.iOS.Widget
 PRODUCT_NAME = VOEWidget
 INFOPLIST_FILE = Widget/Info.plist

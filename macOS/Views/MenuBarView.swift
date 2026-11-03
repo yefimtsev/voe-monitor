@@ -53,7 +53,7 @@ struct MenuBarView: View {
                         .font(.system(size: 11, weight: .medium))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
-                        .adaptiveGlass(in: .capsule)
+                        .glassEffect(in: .capsule)
                 }
             }
 
@@ -133,7 +133,7 @@ struct MenuBarView: View {
                     }
                 }
                 .clipped()
-                .adaptiveGlass(in: .rect(cornerRadius: 12))
+                .glassEffect(in: .rect(cornerRadius: 12))
             }
             if service.todaySchedule == nil, service.tomorrowSchedule == nil {
                 emptyState
@@ -177,7 +177,7 @@ struct MenuBarView: View {
             hourGrid(slots: schedule.slots, highlightCurrent: isToday)
         }
         .padding(10)
-        .adaptiveGlass(in: .rect(cornerRadius: 12))
+        .glassEffect(in: .rect(cornerRadius: 12))
     }
 
     private func hourGrid(slots: [HourSlot], highlightCurrent: Bool) -> some View {
@@ -280,7 +280,7 @@ struct MenuBarView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
-        .adaptiveGlass(in: .rect(cornerRadius: 8))
+        .glassEffect(in: .rect(cornerRadius: 8))
     }
 
     // MARK: - Update Banner
@@ -304,7 +304,7 @@ struct MenuBarView: View {
                 NSWorkspace.shared.open(url)
             }
         }
-        .adaptiveGlass(in: .rect(cornerRadius: 8))
+        .glassEffect(in: .rect(cornerRadius: 8))
     }
 
     // MARK: - Action Buttons
@@ -325,7 +325,7 @@ struct MenuBarView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .adaptiveGlass(.interactive, in: .rect(cornerRadius: 8))
+            .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 8))
 
             Button {
                 settingsBounce += 1
@@ -342,7 +342,7 @@ struct MenuBarView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .adaptiveGlass(.interactive, in: .rect(cornerRadius: 8))
+            .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 8))
 
             Button {
                 NSApplication.shared.terminate(nil)
@@ -357,7 +357,7 @@ struct MenuBarView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .adaptiveGlass(.interactive, in: .rect(cornerRadius: 8))
+            .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 8))
         }
     }
 }
