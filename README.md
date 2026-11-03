@@ -8,11 +8,11 @@ Tired of checking voe.com.ua? This app puts that info one click away. Pick your 
 
 The menubar icon changes based on your current power status:
 
-- **Green bolt** — power is on
-- **Red bolt (pulsing)** — power is off
-- **Orange bolt** — partial outage (half-hour cutoff)
+- **Bolt** — power is on
+- **Crossed-out bolt** — power is off
+- **Bolt with a warning badge** — no schedule for right now (no queue picked, or no data yet)
 
-Click the icon to see a detailed hourly schedule for today and tomorrow.
+Click the icon to see a detailed hourly schedule for today and tomorrow. An hour with a 30-minute outage is drawn half red, half green, and the status flips on the half hour.
 
 ## Install
 
@@ -25,7 +25,9 @@ brew install --cask voe-monitor
 
 **Manual**: Download the latest `.dmg` from [Releases](https://github.com/yefimtsev/voe-monitor/releases), open it, drag to Applications.
 
-Requires **macOS 15 (Sequoia)** or later.
+Requires **macOS 26 (Tahoe)** or later. On Sequoia, stay on [1.2.1](https://github.com/yefimtsev/voe-monitor/releases/tag/v1.2.1).
+
+**iPhone**: an iOS app with home and lock screen widgets is in TestFlight beta.
 
 ## Usage
 
@@ -37,7 +39,7 @@ The app tells you when the next outage or restoration is expected, with a countd
 
 In settings you can also:
 
-- Turn on **notifications** for power status changes and upcoming outage warnings
+- Turn on **notifications** for power going off and coming back, and a warning 15, 30 or 60 minutes before an outage. They are scheduled ahead from the timetable, so they don't depend on the app refreshing at the right moment
 - Switch between **English and Ukrainian** (or follow system language)
 - Choose **12-hour or 24-hour** time format
 - Enable **Launch at Login**
@@ -48,14 +50,17 @@ The schedule is fetched from a [community-maintained JSON file](https://github.c
 
 ## Building from source
 
-You'll need Xcode 26+ and [xcodegen](https://github.com/yonaskolb/XcodeGen).
+You'll need Xcode 26+.
 
 ```bash
-# Generate the Xcode project
-xcodegen generate
-
-# Build
+# macOS app
 xcodebuild -project VOEMonitor.xcodeproj -scheme VOEMonitor build
+
+# iOS app and widget
+xcodebuild -project VOEMonitor.xcodeproj -scheme VOEMonitorIOS -destination 'generic/platform=iOS Simulator' build
+
+# Tests for the shared schedule logic
+swift test
 ```
 
 No external dependencies. Pure Swift and SwiftUI.
@@ -64,9 +69,9 @@ No external dependencies. Pure Swift and SwiftUI.
 
 - Swift 6 with strict concurrency
 - SwiftUI + Observation framework
-- Liquid Glass on macOS 26+, translucent material fallback on Sequoia
-- Localized in English and Ukrainian (with in-app override)
-- Sandboxed, network-only (outbound HTTPS to GitHub)
+- Liquid Glass on macOS 26 and iOS 26 (material fallback on iOS 18–25)
+- Localized in English and Ukrainian with a String Catalog (in-app override on macOS)
+- Network access is outbound HTTPS to GitHub only. The macOS app is a notarized Developer ID build, not sandboxed
 - Zero external packages
 
 ## License
