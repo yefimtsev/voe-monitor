@@ -133,43 +133,37 @@ jobs:
             --title "VOE Monitor $VERSION" \
             --generate-notes
 
-      - name: Update Homebrew tap
-        if: env.DRY_RUN != 'true' && vars.HOMEBREW_TAP_REPO != ''
+      # This repository is its own Homebrew tap. The cask on master is the template: only version,
+      # sha256 and the minimum macOS change per release, and the minimum comes from the built app.
+      - name: Update the Homebrew cask
+        if: env.DRY_RUN != 'true'
         env:
-          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          CASK: Casks/voe-monitor.rb
         run: |
           SHA=$(shasum -a 256 build/VOEMonitor.dmg | awk '{print $1}')
+          MIN=$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "build/dmg-staging/VOE Monitor.app/Contents/Info.plist")
+          case "${MIN%%.*}" in
+            26) OS=tahoe ;;
+            15) OS=sequoia ;;
+            *) echo "::error::No Homebrew name for macOS $MIN; add it here"; exit 1 ;;
+          esac
 
-          git clone "https://x-access-token:${GH_TOKEN}@github.com/${{ vars.HOMEBREW_TAP_REPO }}.git" tap
-          cd tap
+          # Edit master's copy, not the tag's: master can be ahead of the release tag.
+          BLOB=$(gh api "repos/$GITHUB_REPOSITORY/contents/$CASK?ref=master" --jq .sha)
+          gh api "repos/$GITHUB_REPOSITORY/contents/$CASK?ref=master" --jq .content | base64 --decode > cask.rb
+          sed -E -i '' \
+            -e "s/^  version \".*\"$/  version \"$VERSION\"/" \
+            -e "s/^  sha256 \".*\"$/  sha256 \"$SHA\"/" \
+            -e "s/^  depends_on macos: .*$/  depends_on macos: :$OS/" cask.rb
+          for expected in "version \"$VERSION\"" "sha256 \"$SHA\"" "depends_on macos: :$OS"; do
+            grep -qF "  $expected" cask.rb || { echo "::error::$CASK has no line for: $expected"; exit 1; }
+          done
 
-          cat > Casks/voe-monitor.rb << CASK
-          cask "voe-monitor" do
-            version "${VERSION}"
-            sha256 "${SHA}"
-
-            url "https://github.com/yefimtsev/voe-monitor/releases/download/v#{version}/VOEMonitor.dmg"
-            name "VOE Monitor"
-            desc "Power outage schedule for Vinnytsia region in your menubar"
-            homepage "https://github.com/yefimtsev/voe-monitor"
-
-            depends_on macos: ">= :tahoe"
-
-            app "VOE Monitor.app"
-
-            zap trash: [
-              "~/Library/Application Support/VOEMonitor",
-              "~/Library/Caches/VOEMonitor",
-              "~/Library/Preferences/com.github.yefimtsev.VOEMonitor.plist",
-            ]
-          end
-          CASK
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Casks/voe-monitor.rb
-          git commit -m "Update voe-monitor to ${VERSION}"
-          git push
+          gh api -X PUT "repos/$GITHUB_REPOSITORY/contents/$CASK" \
+            -f message="chore(cask): Update voe-monitor to $VERSION" \
+            -f content="$(base64 -i cask.rb)" -f sha="$BLOB" -f branch=master > /dev/null
+          echo "Cask updated to $VERSION (macOS $OS+)"
 
       - name: Clean up
         if: always()
@@ -181,5 +175,4 @@ jobs:
 #   secrets.CERTIFICATE_P12, secrets.CERTIFICATE_PASSWORD  Developer ID Application certificate
 #   secrets.APPLE_TEAM_ID
 #   secrets.ASC_KEY_ID, secrets.ASC_ISSUER_ID, secrets.ASC_KEY_CONTENT  App Store Connect API key (notarization)
-#   secrets.HOMEBREW_TAP_TOKEN, vars.HOMEBREW_TAP_REPO  optional, for the Homebrew cask
-# No longer used: secrets.APPLE_ID, secrets.APPLE_PASSWORD
+# The Homebrew cask (Casks/voe-monitor.rb) is updated with GITHUB_TOKEN; no tap token is needed.

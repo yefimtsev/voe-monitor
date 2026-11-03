@@ -19,9 +19,13 @@ Click the icon to see a detailed hourly schedule for today and tomorrow. An hour
 **Homebrew** (recommended):
 
 ```bash
-brew tap yefimtsev/tap
-brew install --cask voe-monitor
+brew tap yefimtsev/voe-monitor https://github.com/yefimtsev/voe-monitor
+brew install --cask yefimtsev/voe-monitor/voe-monitor
 ```
+
+The full name in the second command is what tells Homebrew to trust this cask (Homebrew 6+ asks for explicit trust in third-party taps).
+
+Installed it from the old `yefimtsev/tap` before? Switch once with `brew uninstall --cask voe-monitor && brew untap yefimtsev/tap`, then run the two commands above.
 
 **Manual**: Download the latest `.dmg` from [Releases](https://github.com/yefimtsev/voe-monitor/releases), open it, drag to Applications.
 

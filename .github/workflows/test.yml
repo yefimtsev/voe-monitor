@@ -20,6 +20,10 @@ jobs:
       - name: Unit tests
         run: swift test
 
+      # Catches Homebrew DSL deprecations before a release has to write the cask.
+      - name: Lint the Homebrew cask
+        run: brew style Casks/voe-monitor.rb
+
       - name: Build macOS
         run: |
           xcodebuild build -project VOEMonitor.xcodeproj -scheme VOEMonitor \
